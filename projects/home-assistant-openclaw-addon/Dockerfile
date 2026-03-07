@@ -8,7 +8,7 @@ WORKDIR /app
 COPY app.py /app/app.py
 COPY run.sh /run.sh
 
-RUN pip3 install --no-cache-dir flask requests \
+RUN pip3 install --no-cache-dir --break-system-packages flask requests \
     && chmod +x /run.sh
 
 CMD [ "/run.sh" ]
