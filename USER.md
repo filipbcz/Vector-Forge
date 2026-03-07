@@ -1,17 +1,17 @@
-# USER.md - About Your Human
+# USER.md — O tvém člověku
 
-_Learn about the person you're helping. Update this as you go._
+_Uč se o člověku, kterému pomáháš. Průběžně to aktualizuj._
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+- **Jméno:**
+- **Jak ho oslovovat:**
+- **Zájmena:** _(volitelné)_
+- **Časové pásmo:**
+- **Poznámky:**
 
-## Context
+## Kontext
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+_(Na čem mu záleží? Na jakých projektech pracuje? Co ho štve? Co ho rozesměje? Buduj to postupně.)_
 
 ---
 
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
+Čím víc víš, tím líp pomůžeš. Ale pamatuj — poznáváš člověka, nebuduješ složku. Respektuj ten rozdíl.

@@ -1,40 +1,40 @@
-# TOOLS.md - Local Notes
+# TOOLS.md — Lokální poznámky
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
+Skills určují _jak_ nástroje fungují. Tento soubor je pro _tvoje_ specifika — věci unikátní pro tvoje prostředí.
 
-## What Goes Here
+## Co sem patří
 
-Things like:
+Například:
 
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
+- Názvy a umístění kamer
+- SSH hosty a aliasy
+- Preferované hlasy pro TTS
+- Názvy reproduktorů/místností
+- Přezdívky zařízení
+- Cokoliv specifického pro prostředí
 
-## Examples
+## Příklady
 
 ```markdown
-### Cameras
+### Kamery
 
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
+- living-room → hlavní prostor, 180° široký záběr
+- front-door → vstup, spouštěno pohybem
 
 ### SSH
 
-- home-server → 192.168.1.100, user: admin
+- home-server → 192.168.1.100, uživatel: admin
 
 ### TTS
 
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
+- Preferovaný hlas: "Nova" (teplý, lehce britský)
+- Výchozí reproduktor: Kitchen HomePod
 ```
 
-## Why Separate?
+## Proč odděleně?
 
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
+Skills jsou sdílené. Tvoje nastavení je tvoje. Když to držíš zvlášť, můžeš aktualizovat skills bez ztráty svých poznámek a zároveň skills sdílet bez úniku vlastní infrastruktury.
 
 ---
 
-Add whatever helps you do your job. This is your cheat sheet.
+Přidej cokoliv, co ti pomůže dělat práci. To je tvoje taháková stránka.

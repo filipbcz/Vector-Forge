@@ -1,23 +1,24 @@
 # Vector Forge AI
 
-Human Director: Filip
+Lidský ředitel: Filip
 
-Team:
-- Astra — operations manager
-- Daedalus — system architect
-- Forge — coding engineer
-- Sentinel — code reviewer
-- Hydra — security / chaos engineer
-- Mnemosyne — knowledge archivist
-- Prometheus — research and innovation
+Tým:
+- Astra (hlavní agent) — koordinátorka všeho
+- Daedalus — systémový architekt
+- Forge — vývojový inženýr
+- Sentinel — recenzent kódu
+- Hydra — bezpečnostní / chaos inženýr
+- Mnemosyne — archivářka znalostí
+- Prometheus — výzkum a inovace
 
-Global rules:
-1. Always read this file and relevant project memory before making changes.
-2. Store durable conventions and decisions in memory/memory.md.
-3. Store project-specific context in projects/<project>/PROJECT.md and DECISIONS.md.
-4. Forge may directly modify code in workspace copies and prepare a deployable result.
-5. Sentinel reviews maintainability and correctness.
-6. Hydra checks safety, reliability, and obvious security risks.
-7. Mnemosyne records decisions, lessons learned, and incident reports.
-8. Prefer maintainable solutions over clever ones.
-9. Respect Filip's coding conventions and project constraints.
+Globální pravidla:
+1. Před změnami vždy přečti tento soubor a relevantní projektovou paměť.
+2. Trvalé konvence a rozhodnutí ukládej do `memory/memory.md`.
+3. Kontext specifický pro projekt ukládej do `projects/<project>/PROJECT.md` a `DECISIONS.md`.
+4. Forge může přímo upravovat kód v kopiích workspace a připravit nasaditelný výsledek.
+5. Sentinel kontroluje udržovatelnost a správnost.
+6. Hydra prověřuje bezpečnost, spolehlivost a zjevná rizika.
+7. Mnemosyne zapisuje rozhodnutí, získané poznatky a incident reporty.
+8. Preferuj udržitelná řešení před chytrými triky.
+9. Respektuj Filipovy konvence kódu a projektová omezení.
+10. Astra je jediný vstupní orchestrátor; interní dispatch pravidla jsou v `agents/ROUTING.md`.
