@@ -1,22 +1,56 @@
-# Home Assistant OpenClaw Add-on (MVP)
+# Home Assistant OpenClaw Add-on v2
 
-Tento add-on umožňuje z Home Assistant automatizace poslat hlasový/tekstový úkol Astře přes Telegram Bot API.
+Tento add-on přijímá hlasový/textový úkol z Home Assistantu a **primárně ho posílá do OpenClaw Gateway jako skutečný inbound message pro agenta** (ne pouze Telegram `sendMessage`).
 
 ## Co umí
 
 - `POST /task` přijímá JSON `{ "text": "..." }`
-- zprávu přepošle do Telegram chatu jako `[HA Voice Task] ...`
+- **gateway mode (default):** odešle úkol přes HTTP na OpenClaw Gateway endpoint pro message dispatch
+- volitelný fallback: `telegram_forward: true` (když gateway selže)
+- alternativně `mode: telegram` (legacy chování)
 - `GET /health` vrací stav add-onu
 - volitelná ochrana přes hlavičku `X-HA-Token`
 
-## Konfigurace add-onu
+## Režimy
 
-V UI Home Assistant add-onu nastavte:
+### 1) `mode: gateway` (doporučeno, výchozí)
 
-- `telegram_bot_token` – token Telegram bota
-- `telegram_chat_id` – cílový chat (user/group/channel)
-- `ha_shared_token` – volitelný shared secret; pokud je vyplněn, endpoint `/task` vyžaduje `X-HA-Token`
-- `listen_port` – port HTTP služby (výchozí `8099`)
+Úkol jde do OpenClaw Gateway jako inbound zpráva => spustí se standardní agentní zpracování (session, routing, tools, odpověď přes kanál).
+
+Nutné vyplnit:
+
+- `openclaw_base_url` (např. `http://host.docker.internal:18789`)
+- `openclaw_to` (např. `telegram:5873857816`)
+
+Volitelně:
+
+- `openclaw_token`
+- `openclaw_channel` (default `telegram`)
+- `openclaw_account_id` (default `default`)
+- `telegram_forward: true` + `telegram_*` pro fallback
+
+### 2) `mode: telegram`
+
+Legacy fallback režim: odešle text přímo přes Telegram Bot API (`sendMessage`).
+
+Nutné vyplnit:
+
+- `telegram_bot_token`
+- `telegram_chat_id`
+
+## Konfigurace add-onu (options)
+
+- `mode`: `gateway` | `telegram` (default `gateway`)
+- `openclaw_base_url`: base URL OpenClaw Gateway HTTP API
+- `openclaw_token`: volitelný bearer token
+- `openclaw_to`: cíl zprávy (např. `telegram:5873857816`)
+- `openclaw_channel`: výchozí `telegram`
+- `openclaw_account_id`: výchozí `default`
+- `telegram_forward`: volitelný fallback při selhání gateway dispatch
+- `telegram_bot_token`: Telegram bot token (pro telegram mode/fallback)
+- `telegram_chat_id`: cílový Telegram chat (pro telegram mode/fallback)
+- `ha_shared_token`: volitelný shared secret; pokud je vyplněn, endpoint `/task` vyžaduje `X-HA-Token`
+- `listen_port`: port HTTP služby (výchozí `8099`)
 
 ## API
 
@@ -43,8 +77,8 @@ curl -X POST http://ADDON_HOST:8099/task \
 
 ## Integrace do Home Assistant
 
-Viz soubor `EXAMPLE_HOME_ASSISTANT_AUTOMATION.yaml` s ukázkou `rest_command` + automatizace.
+Viz `EXAMPLE_HOME_ASSISTANT_AUTOMATION.yaml` (v2 příklad pro `rest_command` + automatizaci).
 
-## Poznámka k ikonám
+## Poznámka
 
-`icon.png` a `logo.png` nejsou pro funkční MVP nutné. V tomto kroku nejsou přidány (placeholder). Add-on funguje i bez nich.
+Implementace používá pouze **HTTP volání** na Gateway endpoint (bez websocketu), aby byla realisticky použitelná z add-on kontejneru.

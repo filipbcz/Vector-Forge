@@ -1,7 +1,7 @@
 name: "OpenClaw Voice Task Bridge"
 slug: "openclaw_voice_task_bridge"
-version: "0.1.0"
-description: "Forward voice tasks from Home Assistant automation to OpenClaw via Telegram"
+version: "0.2.0"
+description: "Forward voice tasks from Home Assistant to OpenClaw Gateway (agent inbound), with optional Telegram fallback"
 url: "https://github.com/filip/vector-forge"
 arch:
   - aarch64
@@ -17,12 +17,26 @@ ports:
 ports_description:
   8099/tcp: "HTTP endpoint for /task and /health"
 options:
+  mode: gateway
+  openclaw_base_url: "http://host.docker.internal:18789"
+  openclaw_token: ""
+  openclaw_to: "telegram:5873857816"
+  openclaw_channel: "telegram"
+  openclaw_account_id: "default"
+  telegram_forward: false
   telegram_bot_token: ""
   telegram_chat_id: ""
   ha_shared_token: ""
   listen_port: 8099
 schema:
-  telegram_bot_token: str
-  telegram_chat_id: str
+  mode: list(gateway|telegram)
+  openclaw_base_url: str
+  openclaw_token: str?
+  openclaw_to: str
+  openclaw_channel: str?
+  openclaw_account_id: str?
+  telegram_forward: bool?
+  telegram_bot_token: str?
+  telegram_chat_id: str?
   ha_shared_token: str?
   listen_port: port

@@ -1,9 +1,8 @@
-# Příklad konfigurace Home Assistantu
-# 1) Přidejte do configuration.yaml část rest_command
-# 2) V automatizaci pak zavolejte rest_command.openclaw_task
+# EXAMPLE_HOME_ASSISTANT_AUTOMATION v2
+# Cíl: poslat text z HA do add-onu, který ho předá do OpenClaw Gateway (agent inbound)
 
 rest_command:
-  openclaw_task:
+  openclaw_task_v2:
     url: "http://a0d7b954-openclaw_voice_task_bridge:8099/task"
     method: POST
     headers:
@@ -12,7 +11,7 @@ rest_command:
     payload: '{"text": "{{ text }}"}'
 
 automation:
-  - alias: "Pošli hlasový úkol do OpenClaw"
+  - alias: "Pošli hlasový úkol do OpenClaw (v2 gateway)"
     mode: single
     triggers:
       - trigger: state
@@ -21,6 +20,6 @@ automation:
       - condition: template
         value_template: "{{ states('input_text.openclaw_task_text') | trim != '' }}"
     actions:
-      - action: rest_command.openclaw_task
+      - action: rest_command.openclaw_task_v2
         data:
           text: "{{ states('input_text.openclaw_task_text') }}"
