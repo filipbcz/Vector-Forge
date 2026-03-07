@@ -1,6 +1,6 @@
 name: "OpenClaw Voice Task Bridge"
-slug: "openclaw_voice_task_bridge"
-version: "0.1.0"
+slug: "openclaw_voice_task_bridge_dev"
+version: "0.1.0-dev"
 description: "Forward voice tasks from Home Assistant automation to OpenClaw via Telegram"
 url: "https://github.com/filip/vector-forge"
 arch:
