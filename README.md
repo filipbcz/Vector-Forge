@@ -27,3 +27,9 @@ python3 projects/test-project/app.py --name Filip
 ## CI
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) kontroluje Python syntax check pro `projects/`.
+
+## Týdenní execution
+
+- `projects/weekly-execution/THIS_WEEK_PLAN.md` — konkrétní plán Po–Ne (20–45 min denně)
+- `projects/weekly-execution/EXPERIMENT_TEMPLATE.md` — šablona pro rychlé 1h experimenty
+- `projects/weekly-execution/SECURITY_BASELINE_CHECKLIST.md` — checklist minimální security baseline
