@@ -1,0 +1,2 @@
+name: "OpenClaw Voice Task Bridge"
+description: "Forward Home Assistant voice tasks to OpenClaw using Telegram Bot API"

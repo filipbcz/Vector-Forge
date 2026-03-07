@@ -33,3 +33,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) kontroluje Python syntax ch
 - `projects/weekly-execution/THIS_WEEK_PLAN.md` — konkrétní plán Po–Ne (20–45 min denně)
 - `projects/weekly-execution/EXPERIMENT_TEMPLATE.md` — šablona pro rychlé 1h experimenty
 - `projects/weekly-execution/SECURITY_BASELINE_CHECKLIST.md` — checklist minimální security baseline
+
+## Home Assistant add-on (OpenClaw)
+
+- `projects/home-assistant-openclaw-addon/README.md` — MVP add-on pro předání hlasového úkolu z HA do OpenClaw přes Telegram Bot API
