@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""VF Ops Watch v0.1
+"""VF Ops Watch v0.2
 
 Local health-check runner for OpenClaw stack.
 - Checks gateway reachability
 - Checks telegram channel status
 - Scans recent OpenClaw logs for errors
 - Emits JSON report and human-readable summary
+- Optional Telegram alerting for warning/critical with anti-spam cooldown
 - Exit code: 0 OK, 1 WARNING, 2 CRITICAL
 """
 
@@ -14,15 +15,17 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import glob
+import hashlib
 import json
 import os
 import re
 import shlex
 import subprocess
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+
+import requests
 
 SEVERITY_ORDER = {"ok": 0, "warning": 1, "critical": 2}
 EXIT_CODE = {"ok": 0, "warning": 1, "critical": 2}
@@ -119,6 +122,11 @@ def normalize_config(raw: Dict[str, Any], base_dir: Path) -> Dict[str, Any]:
     checks = raw.get("checks", {}) if isinstance(raw.get("checks", {}), dict) else {}
     paths = raw.get("paths", {}) if isinstance(raw.get("paths", {}), dict) else {}
     thresholds = raw.get("thresholds", {}) if isinstance(raw.get("thresholds", {}), dict) else {}
+    notify = raw.get("notify", {}) if isinstance(raw.get("notify", {}), dict) else {}
+
+    notify_min_severity = str(notify.get("notify_min_severity", "warning")).lower()
+    if notify_min_severity not in {"warning", "critical"}:
+        notify_min_severity = "warning"
 
     cfg = {
         "checks": {
@@ -133,6 +141,14 @@ def normalize_config(raw: Dict[str, Any], base_dir: Path) -> Dict[str, Any]:
         "thresholds": {
             "warning_error_lines": int(thresholds.get("warning_error_lines", 1)),
             "critical_error_lines": int(thresholds.get("critical_error_lines", 5)),
+        },
+        "notify": {
+            "enabled": bool(notify.get("enabled", False)),
+            "telegram_bot_token": str(notify.get("telegram_bot_token", "")).strip(),
+            "telegram_chat_id": str(notify.get("telegram_chat_id", "")).strip(),
+            "notify_min_severity": notify_min_severity,
+            "cooldown_seconds_warning": int(notify.get("cooldown_seconds_warning", 600)),
+            "cooldown_seconds_critical": int(notify.get("cooldown_seconds_critical", 300)),
         },
         "paths": {
             "output_json": paths.get("output_json", str(base_dir / "out" / "latest.json")),
@@ -192,7 +208,6 @@ def check_telegram_channel(cfg: Dict[str, Any]) -> Dict[str, Any]:
     if "telegram" not in combined:
         return {"name": "telegram_channel", "severity": "warning", "status": "telegram_not_found", "details": result}
 
-    # healthy indicators near telegram presence
     healthy_words = ["running", "connected", "active", "ready", "ok", "enabled"]
     unhealthy_words = ["stopped", "disconnected", "error", "failed", "offline", "disabled"]
 
@@ -285,6 +300,155 @@ def write_json_report(path: Path, report: Dict[str, Any]) -> None:
     path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
 
 
+def load_json_file(path: Path, fallback: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        if not path.exists():
+            return fallback
+        return json.loads(path.read_text())
+    except Exception:
+        return fallback
+
+
+def save_json_file(path: Path, value: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n")
+
+
+def build_alert_payload(report: Dict[str, Any]) -> Dict[str, Any]:
+    failing_checks = [c for c in report["checks"] if c["severity"] != "ok"]
+    signature_src = {
+        "overall": report["overall_severity"],
+        "issues": [
+            {
+                "name": c["name"],
+                "severity": c["severity"],
+                "status": c["status"],
+                "error_lines": c.get("details", {}).get("error_lines"),
+            }
+            for c in failing_checks
+        ],
+    }
+    signature = hashlib.sha1(json.dumps(signature_src, sort_keys=True).encode("utf-8")).hexdigest()
+
+    return {
+        "severity": report["overall_severity"],
+        "timestamp": report["timestamp"],
+        "host": report.get("meta", {}).get("host", "unknown"),
+        "summary": report.get("summary", ""),
+        "issues": [f"{c['name']}: {c['severity'].upper()} ({c['status']})" for c in failing_checks],
+        "signature": signature,
+    }
+
+
+def should_notify(overall: str, notify_cfg: Dict[str, Any]) -> bool:
+    min_sev = notify_cfg["notify_min_severity"]
+    return SEVERITY_ORDER[overall] >= SEVERITY_ORDER[min_sev]
+
+
+def alert_cooldown_seconds(severity: str, notify_cfg: Dict[str, Any]) -> int:
+    if severity == "critical":
+        return max(0, int(notify_cfg["cooldown_seconds_critical"]))
+    return max(0, int(notify_cfg["cooldown_seconds_warning"]))
+
+
+def render_alert_text(payload: Dict[str, Any]) -> str:
+    emoji = "🟠" if payload["severity"] == "warning" else "🔴"
+    issues_text = "\n".join(f"- {i}" for i in payload["issues"]) or "- no details"
+    return (
+        f"{emoji} VF Ops Watch {payload['severity'].upper()}\n"
+        f"Host: {payload['host']}\n"
+        f"Time: {payload['timestamp']}\n"
+        f"Issues:\n{issues_text}\n"
+        f"\nSummary:\n{payload['summary']}"
+    )
+
+
+def send_telegram_alert(text: str, token: str, chat_id: str, timeout_sec: int = 10) -> Dict[str, Any]:
+    if not token or not chat_id:
+        return {"sent": False, "error": "missing_telegram_credentials"}
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    body = {"chat_id": chat_id, "text": text}
+
+    try:
+        resp = requests.post(url, json=body, timeout=timeout_sec)
+        ok = resp.status_code == 200
+        data = {}
+        try:
+            data = resp.json()
+        except Exception:
+            data = {"raw": resp.text[:400]}
+
+        if ok and data.get("ok"):
+            return {"sent": True, "status_code": resp.status_code, "response": data}
+
+        return {
+            "sent": False,
+            "status_code": resp.status_code,
+            "error": "telegram_api_error",
+            "response": data,
+        }
+    except Exception as e:
+        return {"sent": False, "error": str(e)}
+
+
+def process_alerting(report: Dict[str, Any], config: Dict[str, Any], state_path: Path) -> Dict[str, Any]:
+    notify_cfg = config["notify"]
+    overall = report["overall_severity"]
+
+    result: Dict[str, Any] = {
+        "enabled": bool(notify_cfg["enabled"]),
+        "eligible": False,
+        "sent": False,
+        "suppressed": False,
+        "reason": None,
+    }
+
+    if not notify_cfg["enabled"]:
+        result["reason"] = "notify_disabled"
+        return result
+
+    if not should_notify(overall, notify_cfg):
+        result["reason"] = "below_notify_min_severity"
+        return result
+
+    payload = build_alert_payload(report)
+    result["eligible"] = True
+    result["payload"] = payload
+
+    now_ts = int(dt.datetime.now(dt.timezone.utc).timestamp())
+    state = load_json_file(state_path, {"last_sent_by_severity": {}})
+    last_sent = state.get("last_sent_by_severity", {}).get(overall, {})
+    last_ts = int(last_sent.get("ts", 0) or 0)
+    last_sig = str(last_sent.get("signature", ""))
+    cooldown = alert_cooldown_seconds(overall, notify_cfg)
+
+    if last_sig == payload["signature"] and (now_ts - last_ts) < cooldown:
+        result["suppressed"] = True
+        result["reason"] = "duplicate_within_cooldown"
+        result["cooldown_seconds"] = cooldown
+        result["next_allowed_in_seconds"] = max(0, cooldown - (now_ts - last_ts))
+        return result
+
+    text = render_alert_text(payload)
+    send_result = send_telegram_alert(text, notify_cfg["telegram_bot_token"], notify_cfg["telegram_chat_id"])
+    result["send_result"] = send_result
+
+    if not send_result.get("sent", False):
+        result["reason"] = "send_failed"
+        return result
+
+    state.setdefault("last_sent_by_severity", {})[overall] = {
+        "ts": now_ts,
+        "signature": payload["signature"],
+    }
+    save_json_file(state_path, state)
+
+    result["sent"] = True
+    result["reason"] = "sent"
+    return result
+
+
 def load_config(config_path: Path) -> Dict[str, Any]:
     if not config_path.exists():
         raise FileNotFoundError(f"Config not found: {config_path}")
@@ -333,10 +497,13 @@ def main() -> int:
         "meta": {
             "host": os.uname().nodename,
             "config_path": str(config_path),
-            "runner": "vf-ops-watch/0.1",
+            "runner": "vf-ops-watch/0.2",
         },
     }
     report["summary"] = build_summary(report)
+
+    alert_state_path = config_path.parent / "out" / "state.json"
+    report["alerting"] = process_alerting(report, config, alert_state_path)
 
     output_path = Path(config["paths"]["output_json"]).expanduser()
     if not output_path.is_absolute():

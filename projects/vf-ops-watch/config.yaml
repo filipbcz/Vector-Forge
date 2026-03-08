@@ -13,5 +13,13 @@ thresholds:
   warning_error_lines: 1
   critical_error_lines: 5
 
+notify:
+  enabled: false
+  telegram_bot_token: ""
+  telegram_chat_id: ""
+  notify_min_severity: "warning"
+  cooldown_seconds_warning: 600
+  cooldown_seconds_critical: 300
+
 paths:
   output_json: "out/latest.json"

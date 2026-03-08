@@ -1,4 +1,4 @@
-# VF Ops Watch v0.1
+# VF Ops Watch v0.2
 
 Lokální health-check runner pro OpenClaw stack.
 
@@ -11,6 +11,7 @@ Lokální health-check runner pro OpenClaw stack.
 ## Výstupy
 
 - JSON report: `projects/vf-ops-watch/out/latest.json`
+- Rate-limit state: `projects/vf-ops-watch/out/state.json`
 - Textový summary na stdout
 
 Ukázka summary:
@@ -40,15 +41,39 @@ echo $?   # exit code
 
 Soubor `config.yaml`:
 
-- `checks.gateway_command` — příkaz pro kontrolu gateway
-- `checks.channels_command` — příkaz pro kontrolu channelů
-- `checks.log_file_glob` — log pattern
-- `checks.log_tail_lines` — počet posledních řádků pro scan
+- `checks.*` — healthcheck příkazy a log scan
 - `thresholds.warning_error_lines` — od kolika error řádků WARNING
 - `thresholds.critical_error_lines` — od kolika error řádků CRITICAL
 - `paths.output_json` — cesta k reportu
 
-> Runner používá pouze Python standard library (bez externích závislostí).
+### Alerting (Telegram)
+
+- `notify.enabled` — zapnutí/vypnutí alertingu
+- `notify.telegram_bot_token` — Bot token (`12345:ABC...`)
+- `notify.telegram_chat_id` — cílový chat / skupina
+- `notify.notify_min_severity` — minimální závažnost pro notifikaci (`warning` / `critical`)
+- `notify.cooldown_seconds_warning` — cooldown pro WARNING
+- `notify.cooldown_seconds_critical` — cooldown pro CRITICAL
+
+Alert text se sestaví při `severity >= notify_min_severity`.
+Odeslání běží přes Telegram Bot API (`requests`), ne přes OpenClaw message tool.
+
+### Rate limiting / anti-spam
+
+Runner drží stav v `out/state.json` (per-severity).
+
+- Porovnává se fingerprint problému (kombinace failing checků + severity).
+- Pokud přijde stejný problém v cooldown okně pro danou severity, alert se **nepošle**.
+- Po úspěšném odeslání se aktualizuje timestamp + fingerprint v `state.json`.
+
+## Test alertu (smoke)
+
+```bash
+cd /home/ubuntu/vector-forge/projects/vf-ops-watch
+./test/smoke_alerts.sh
+```
+
+Smoke test vygeneruje simulované warning/critical běhy a ověří, že se v `out/latest.json` vytvoří alert payload (`alerting.payload`) při splněném thresholdu.
 
 ## Nasazení na Ubuntu (systemd timer)
 
@@ -73,17 +98,3 @@ systemctl list-timers --all | grep vf-ops-watch
 sudo systemctl start vf-ops-watch.service
 journalctl -u vf-ops-watch.service -n 100 --no-pager
 ```
-
-## Cron alternativa (volitelně)
-
-Pokud nechceš systemd timer, můžeš použít cron:
-
-```cron
-* * * * * cd /home/ubuntu/vector-forge/projects/vf-ops-watch && /usr/bin/python3 runner.py --config config.yaml >> /tmp/vf-ops-watch.log 2>&1
-```
-
-## Poznámky k robustnosti
-
-- Pokud chybí `openclaw` CLI nebo timeoutne command, check je `CRITICAL`.
-- Pokud nenajde logy, check je `WARNING` (není to hard fail).
-- Při chybě konfigurace je výstup `CRITICAL` a fallback report se zapíše do `out/latest.json`.

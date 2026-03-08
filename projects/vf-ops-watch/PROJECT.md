@@ -49,28 +49,19 @@ Lehká implementace bez velké infrastruktury navíc:
 
 ---
 
-## v0.2 — Incident workflow + agentní triage
-### Návrh
-Rozšířit monitoring o řízený incident tok:
-- standardizované severity (S1/S2/S3),
-- automatická triage přes interní agenty,
-- záznam incidentu do projektové paměti.
+## v0.2 — Telegram alerting + rate limiting (**implemented**)
+### Stav
+Implementováno v `runner.py` + `config.yaml` + `README.md`.
 
-### Funkce
-- K alertu se přidá severity + doporučený první krok.
-- Astra/Daedalus dostane strukturovaný payload pro triage.
-- Sentinel/Hydra mohou být přizváni podle typu incidentu.
-- Mnemosyne zapíše incident summary do `memory/memory.md` a projektového logu.
+### Dodané funkce
+- Telegram alerting pro `warning`/`critical` přes Telegram Bot API (`requests`).
+- Konfigurovatelný threshold `notify.notify_min_severity`.
+- Anti-spam cooldown per severity (`warning`/`critical`).
+- Deduplikace stejné chyby v cooldown okně přes fingerprint incidentu.
+- Persistovaný rate-limit stav v `out/state.json`.
 
-### DoD
-- Každý alert má severity a incident ID.
-- Triage šablona existuje a je používaná konzistentně.
-- Incident má uzavírací záznam (root cause / workaround / next action).
-
-### Rizika
-- Příliš složitý flow zpomalí reakci.
-- Nekonzistentní klasifikace severity mezi agenty.
-- Chybějící disciplína v uzavírání incidentů.
+### Poznámka
+Další krok pro rozšíření v0.2+ může být napojení na incident workflow/triage.
 
 ---
 
