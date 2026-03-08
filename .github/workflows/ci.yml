@@ -22,3 +22,83 @@ jobs:
         run: |
           set -euo pipefail
           python -m compileall -q projects
+
+  yaml-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyYAML
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Validate all YAML files
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          files = sorted(
+              p for p in Path('.').rglob('*')
+              if p.is_file() and p.suffix.lower() in {'.yml', '.yaml'} and '.git' not in p.parts
+          )
+
+          if not files:
+              print('No YAML files found.')
+              raise SystemExit(0)
+
+          failed = []
+          for f in files:
+              try:
+                  yaml.safe_load(f.read_text(encoding='utf-8'))
+                  print(f'OK   {f}')
+              except Exception as e:
+                  failed.append((f, e))
+                  print(f'FAIL {f}: {e}')
+
+          if failed:
+              raise SystemExit(f'YAML validation failed for {len(failed)} file(s).')
+
+          print(f'Validated {len(files)} YAML file(s).')
+          PY
+
+  addon-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyYAML
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Python syntax check (addon app)
+        run: |
+          set -euo pipefail
+          python -m py_compile openclaw_voice_task_bridge/app.py
+
+      - name: Shell syntax check (addon run script)
+        run: |
+          set -euo pipefail
+          bash -n openclaw_voice_task_bridge/run.sh
+
+      - name: Validate add-on config required keys
+        run: |
+          set -euo pipefail
+          python tools/ci/validate_addon_config.py openclaw_voice_task_bridge/config.yaml

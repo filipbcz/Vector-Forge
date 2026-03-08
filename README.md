@@ -24,9 +24,16 @@ python3 projects/test-project/app.py --name Filip
 4. Otevři PR do `main`
 5. Po review merge
 
-## CI
+## CI checks
 
-GitHub Actions workflow (`.github/workflows/ci.yml`) kontroluje Python syntax check pro `projects/`.
+GitHub Actions workflow (`.github/workflows/ci.yml`) nyní kontroluje:
+
+- **python-sanity**: compile-check Python souborů v `projects/`
+- **yaml-lint**: parsování všech `*.yml`/`*.yaml` souborů v repu přes PyYAML
+- **addon-smoke** (Home Assistant add-on):
+  - Python syntax check `openclaw_voice_task_bridge/app.py`
+  - shell syntax check `openclaw_voice_task_bridge/run.sh` (`bash -n`)
+  - validaci `openclaw_voice_task_bridge/config.yaml` na povinné klíče `name`, `slug`, `version`, `options`, `schema`
 
 ## Týdenní execution
 
