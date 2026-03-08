@@ -34,3 +34,4 @@
 - Eskalace na Filipa probíhá jen při blokerech, přístupech/tajnech, externích nevratných akcích nebo strategickém rozhodnutí.
 - Standard finálního reportu: co je hotovo, rizika a další krok.
 - Trvalé procesní pravidlo: po každé změně kódu musí proběhnout kompletní re-run kontrolního cyklu (Sentinel review + Forge testy + Hydra security review, pokud relevantní) ještě před označením úkolu jako „hotovo“.
+- Nové tvrdé pravidlo od Filipa: vždy dodržet vývojový cyklus `návrh -> realizace -> test/re-test -> Sentinel review -> Hydra security review -> teprve potom stav hotovo/nasazení`; Astra tento cyklus vynucuje bez výjimek.
