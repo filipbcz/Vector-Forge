@@ -7,6 +7,12 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 
+class GatewayDispatchError(RuntimeError):
+    def __init__(self, message: str, details: Dict[str, Any]):
+        super().__init__(message)
+        self.details = details
+
+
 def _get_env(name: str, required: bool = False, default: str = "") -> str:
     value = os.getenv(name, default)
     if required and not value:
@@ -28,6 +34,9 @@ def _load_config() -> Dict[str, Any]:
         "openclaw_channel": _get_env("OPENCLAW_CHANNEL", default="telegram").strip() or "telegram",
         "openclaw_account_id": _get_env("OPENCLAW_ACCOUNT_ID", default="default").strip()
         or "default",
+        "openclaw_dispatch_path": _get_env("OPENCLAW_DISPATCH_PATH", default="/message/send").strip()
+        or "/message/send",
+        "debug_logging": _get_bool_env("DEBUG_LOGGING", default=True),
         "telegram_forward": _get_bool_env("TELEGRAM_FORWARD", default=False),
         "telegram_bot_token": _get_env("TELEGRAM_BOT_TOKEN", default="").strip(),
         "telegram_chat_id": _get_env("TELEGRAM_CHAT_ID", default="").strip(),
@@ -70,6 +79,20 @@ def _normalize_base_url(base_url: str) -> str:
     return base_url.rstrip("/")
 
 
+def _normalize_dispatch_path(dispatch_path: str) -> str:
+    path = (dispatch_path or "").strip()
+    if not path:
+        return "/message/send"
+    segments = [segment for segment in path.split("/") if segment]
+    if not segments:
+        return "/"
+    return "/" + "/".join(segments)
+
+
+def _join_url(base_url: str, path: str) -> str:
+    return f"{base_url}{path}"
+
+
 def _parse_json_response(response: requests.Response) -> Dict[str, Any]:
     try:
         data = response.json()
@@ -80,12 +103,50 @@ def _parse_json_response(response: requests.Response) -> Dict[str, Any]:
         return {"_raw_text": response.text[:500] if response.text else ""}
 
 
+def _truncate_text(value: Optional[str], max_len: int = 300) -> str:
+    if not value:
+        return ""
+    return value[:max_len]
+
+
+def _attempt_gateway_dispatch(
+    *,
+    url: str,
+    path: str,
+    payload: Dict[str, Any],
+    headers: Dict[str, str],
+    timeout: int,
+    debug_logging: bool,
+) -> Dict[str, Any]:
+    attempt: Dict[str, Any] = {"url": url, "path": path, "status": None, "body": "", "error": ""}
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
+        attempt["status"] = response.status_code
+        data = _parse_json_response(response)
+
+        body_summary = data.get("error") or data.get("message") or data.get("_raw_text") or ""
+        attempt["body"] = _truncate_text(str(body_summary))
+
+        print(f"[voice-task-bridge] final_url={url} status_code={response.status_code}")
+
+        return {"response": response, "data": data, "attempt": attempt}
+    except requests.RequestException as exc:
+        attempt["error"] = _truncate_text(str(exc))
+        if debug_logging:
+            print(f"[voice-task-bridge] final_url={url} status_code=network_error")
+        return {"response": None, "data": {}, "attempt": attempt}
+
+
 def _send_to_openclaw_gateway(config: Dict[str, Any], text: str) -> Dict[str, Any]:
     base_url = _normalize_base_url(config["openclaw_base_url"])
+    dispatch_path = _normalize_dispatch_path(config.get("openclaw_dispatch_path", "/message/send"))
     timeout = config["http_timeout_seconds"]
+    debug_logging = bool(config.get("debug_logging", True))
 
     headers: Dict[str, str] = {"Content-Type": "application/json"}
-    if config["openclaw_token"]:
+    auth_used = bool(config["openclaw_token"])
+    if auth_used:
         headers["Authorization"] = f"Bearer {config['openclaw_token']}"
 
     payload = {
@@ -97,43 +158,69 @@ def _send_to_openclaw_gateway(config: Dict[str, Any], text: str) -> Dict[str, An
         "message": text,
     }
 
-    endpoint_candidates: List[str] = [
-        "/api/v1/message/send",
-        "/v1/message/send",
-        "/message/send",
-    ]
+    if debug_logging:
+        print(
+            f"[voice-task-bridge] selected_base_url={base_url} dispatch_path={dispatch_path}"
+        )
 
-    failures: List[str] = []
+    known_fallback_paths: List[str] = ["/api/v1/message/send", "/v1/message/send", "/message/send"]
+    fallback_paths = [p for p in known_fallback_paths if p != dispatch_path]
 
-    for endpoint in endpoint_candidates:
-        url = f"{base_url}{endpoint}"
-        try:
-            response = requests.post(url, json=payload, headers=headers, timeout=timeout)
-        except requests.RequestException as exc:
-            failures.append(f"{endpoint}: network error: {exc}")
-            continue
+    attempts: List[Dict[str, Any]] = []
 
-        data = _parse_json_response(response)
+    primary_url = _join_url(base_url, dispatch_path)
+    primary_result = _attempt_gateway_dispatch(
+        url=primary_url,
+        path=dispatch_path,
+        payload=payload,
+        headers=headers,
+        timeout=timeout,
+        debug_logging=debug_logging,
+    )
+    attempts.append(primary_result["attempt"])
 
-        if response.status_code in {404, 405}:
-            failures.append(f"{endpoint}: unsupported endpoint (HTTP {response.status_code})")
-            continue
+    primary_response = primary_result["response"]
+    primary_data = primary_result["data"]
 
-        if response.status_code >= 400:
-            message = data.get("error") or data.get("message") or data.get("_raw_text") or "unknown"
-            raise RuntimeError(
-                f"OpenClaw Gateway HTTP {response.status_code} on {endpoint}: {message}"
-            )
-
+    if primary_response is not None and primary_response.status_code < 400:
         return {
-            "endpoint": endpoint,
-            "status_code": response.status_code,
-            "response": data,
+            "endpoint": dispatch_path,
+            "status_code": primary_response.status_code,
+            "response": primary_data,
         }
 
-    raise RuntimeError(
-        "Unable to dispatch task to OpenClaw Gateway via known HTTP endpoints. "
-        + " | ".join(failures)
+    should_try_fallback = debug_logging
+
+    if should_try_fallback:
+        for fallback_path in fallback_paths:
+            fallback_url = _join_url(base_url, fallback_path)
+            fallback_result = _attempt_gateway_dispatch(
+                url=fallback_url,
+                path=fallback_path,
+                payload=payload,
+                headers=headers,
+                timeout=timeout,
+                debug_logging=debug_logging,
+            )
+            attempts.append(fallback_result["attempt"])
+
+            fallback_response = fallback_result["response"]
+            fallback_data = fallback_result["data"]
+
+            if fallback_response is not None and fallback_response.status_code < 400:
+                return {
+                    "endpoint": fallback_path,
+                    "status_code": fallback_response.status_code,
+                    "response": fallback_data,
+                }
+
+    raise GatewayDispatchError(
+        "Unable to dispatch task to OpenClaw Gateway",
+        {
+            "attempted_urls": [attempt["url"] for attempt in attempts],
+            "attempts": attempts,
+            "auth_used": auth_used,
+        },
     )
 
 
@@ -242,6 +329,17 @@ def task() -> Any:
                 {
                     "error": "upstream_network_error",
                     "message": f"Failed to reach upstream service: {exc}",
+                }
+            ),
+            502,
+        )
+    except GatewayDispatchError as exc:
+        return (
+            jsonify(
+                {
+                    "error": "dispatch_error",
+                    "message": str(exc),
+                    **exc.details,
                 }
             ),
             502,

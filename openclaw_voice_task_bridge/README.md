@@ -46,6 +46,8 @@ Nutné vyplnit:
 - `openclaw_to`: cíl zprávy (např. `telegram:5873857816`)
 - `openclaw_channel`: výchozí `telegram`
 - `openclaw_account_id`: výchozí `default`
+- `openclaw_dispatch_path`: cesta dispatch endpointu (výchozí `/message/send`)
+- `debug_logging`: zapne stručné diagnostické logy + fallback pokusy na známé cesty (výchozí `true`)
 - `telegram_forward`: volitelný fallback při selhání gateway dispatch
 - `telegram_bot_token`: Telegram bot token (pro telegram mode/fallback)
 - `telegram_chat_id`: cílový Telegram chat (pro telegram mode/fallback)
@@ -78,6 +80,34 @@ curl -X POST http://ADDON_HOST:8099/task \
 ## Integrace do Home Assistant
 
 Viz `EXAMPLE_HOME_ASSISTANT_AUTOMATION.yaml` (v2 příklad pro `rest_command` + automatizaci).
+
+## Diagnostika
+
+Pokud je `debug_logging: true`, add-on loguje do stdout stručně:
+
+- zvolený `openclaw_base_url`
+- zvolený `openclaw_dispatch_path`
+- finální URL každého pokusu
+- HTTP status code (nebo `network_error`)
+
+Při chybě dispatch vrací JSON navíc se strukturovanými poli:
+
+- `attempted_urls`: seznam URL, které byly zkuseny
+- `attempts`: detail každého pokusu (`status`, zkrácené `body`, případně `error`)
+- `auth_used`: zda byl použit Bearer token
+
+Fallback pokusy na známé cesty (`/api/v1/message/send`, `/v1/message/send`, `/message/send`) se provádí **jen když selže explicitní `openclaw_dispatch_path` a zároveň je zapnuté `debug_logging`**.
+
+### Doporučená minimální konfigurace pro Filipa
+
+```yaml
+mode: gateway
+openclaw_base_url: "http://<VEŘEJNÁ_IP_NEBO_DNS>:18789"
+openclaw_token: "<OPENCLAW_TOKEN>"
+openclaw_to: "telegram:5873857816"
+openclaw_dispatch_path: "/message/send"
+debug_logging: true
+```
 
 ## Poznámka
 
