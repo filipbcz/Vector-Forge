@@ -29,3 +29,8 @@
 - Zápisy do projektové paměti (`memory/memory.md`) provádí výhradně Mnemosyne.
 - Korekce procesu: předchozí zápis provedla Astra; nově je to opraveno a zapisuje Mnemosyne.
 - Astra odpovídá za řízení spolupráce, správné delegování a finální odpovědnost za výsledek.
+- Před odevzdáním technického výstupu musí proběhnout kompletní kontrola (Sentinel: code review, Forge: testy/ověření běhu, Hydra: security review, je-li relevantní); Astra smí reportovat „hotovo“ až po potvrzení těchto kontrol.
+- Režim „default execute“ je schválen: tým jedná autonomně na běžných úkolech bez čekání na potvrzení.
+- Eskalace na Filipa probíhá jen při blokerech, přístupech/tajnech, externích nevratných akcích nebo strategickém rozhodnutí.
+- Standard finálního reportu: co je hotovo, rizika a další krok.
+- Trvalé procesní pravidlo: po každé změně kódu musí proběhnout kompletní re-run kontrolního cyklu (Sentinel review + Forge testy + Hydra security review, pokud relevantní) ještě před označením úkolu jako „hotovo“.
