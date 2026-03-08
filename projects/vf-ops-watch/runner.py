@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""VF Ops Watch v0.2
+"""VF Ops Watch v0.2.1
 
 Local health-check runner for OpenClaw stack.
 - Checks gateway reachability
 - Checks telegram channel status
-- Scans recent OpenClaw logs for errors
+- Scans recent OpenClaw logs for relevant errors
 - Emits JSON report and human-readable summary
 - Optional Telegram alerting for warning/critical with anti-spam cooldown
 - Exit code: 0 OK, 1 WARNING, 2 CRITICAL
@@ -23,7 +23,7 @@ import shlex
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
@@ -58,12 +58,24 @@ def _parse_scalar(value: str) -> Any:
     return v
 
 
+def _next_nonempty(lines: List[str], start_idx: int) -> Optional[Tuple[int, str, int]]:
+    for j in range(start_idx + 1, len(lines)):
+        line = lines[j].split("#", 1)[0].rstrip()
+        if not line.strip():
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        return j, line.strip(), indent
+    return None
+
+
 def parse_simple_yaml(text: str) -> Dict[str, Any]:
     """Very small YAML subset parser (dict/list/scalars, 2-space indentation)."""
     root: Dict[str, Any] = {}
     stack: List[Tuple[int, Any]] = [(-1, root)]
+    lines = text.splitlines()
 
-    for lineno, raw in enumerate(text.splitlines(), start=1):
+    for idx, raw in enumerate(lines):
+        lineno = idx + 1
         line = raw.split("#", 1)[0].rstrip()
         if not line.strip():
             continue
@@ -106,7 +118,11 @@ def parse_simple_yaml(text: str) -> Dict[str, Any]:
             raise ValueError(f"Key/value in non-dict context at line {lineno}")
 
         if value == "":
-            parent[key] = {}
+            nxt = _next_nonempty(lines, idx)
+            if nxt and nxt[2] > indent and nxt[1].startswith("- "):
+                parent[key] = []
+            else:
+                parent[key] = {}
             stack.append((indent, parent[key]))
         elif value == "[]":
             parent[key] = []
@@ -128,6 +144,14 @@ def normalize_config(raw: Dict[str, Any], base_dir: Path) -> Dict[str, Any]:
     if notify_min_severity not in {"warning", "critical"}:
         notify_min_severity = "warning"
 
+    log_ignore_raw = raw.get("log_ignore_patterns", [])
+    if isinstance(log_ignore_raw, list):
+        log_ignore_patterns = [str(x) for x in log_ignore_raw if str(x).strip()]
+    elif isinstance(log_ignore_raw, str) and log_ignore_raw.strip():
+        log_ignore_patterns = [log_ignore_raw.strip()]
+    else:
+        log_ignore_patterns = []
+
     cfg = {
         "checks": {
             "gateway_command": checks.get("gateway_command", "openclaw gateway status"),
@@ -137,6 +161,7 @@ def normalize_config(raw: Dict[str, Any], base_dir: Path) -> Dict[str, Any]:
             "channels_timeout_sec": int(checks.get("channels_timeout_sec", 8)),
             "log_tail_lines": int(checks.get("log_tail_lines", 300)),
             "log_file_glob": checks.get("log_file_glob", "/tmp/openclaw/openclaw-*.log"),
+            "log_ignore_patterns": log_ignore_patterns,
         },
         "thresholds": {
             "warning_error_lines": int(thresholds.get("warning_error_lines", 1)),
@@ -185,39 +210,97 @@ def run_cmd(command: str, timeout_sec: int) -> Dict[str, Any]:
         }
 
 
+def check_http_health(url: str, timeout_sec: int) -> Dict[str, Any]:
+    if not url:
+        return {"checked": False, "ok": False, "status_code": None, "error": "health_url_not_configured"}
+    try:
+        resp = requests.get(url, timeout=max(1, timeout_sec))
+        ok = 200 <= resp.status_code < 300
+        return {
+            "checked": True,
+            "ok": ok,
+            "status_code": resp.status_code,
+            "error": None if ok else "non_2xx_status",
+        }
+    except Exception as e:
+        return {"checked": True, "ok": False, "status_code": None, "error": str(e)}
+
+
 def check_gateway(cfg: Dict[str, Any]) -> Dict[str, Any]:
     result = run_cmd(cfg["gateway_command"], cfg["gateway_timeout_sec"])
     combined = f"{result['stdout']}\n{result['stderr']}".lower()
 
-    if result["ok"] and any(w in combined for w in ["running", "active", "healthy", "online"]):
-        return {"name": "gateway", "severity": "ok", "status": "reachable", "details": result}
+    healthy_words = ["running", "active", "healthy", "online", "ok"]
+    unhealthy_words = ["inactive", "dead", "failed", "offline", "stopped", "error"]
+
+    details: Dict[str, Any] = {"command": result}
 
     if result["ok"]:
-        return {"name": "gateway", "severity": "warning", "status": "unclear_status", "details": result}
+        if any(w in combined for w in unhealthy_words):
+            return {"name": "gateway", "severity": "critical", "status": "reported_unhealthy", "details": details}
+        if any(w in combined for w in healthy_words):
+            return {"name": "gateway", "severity": "ok", "status": "reachable", "details": details}
 
-    return {"name": "gateway", "severity": "critical", "status": "unreachable", "details": result}
+        health = check_http_health(cfg.get("gateway_health_url", ""), min(5, cfg["gateway_timeout_sec"]))
+        details["health_url"] = health
+        if health.get("ok"):
+            return {"name": "gateway", "severity": "ok", "status": "health_url_ok", "details": details}
+        return {"name": "gateway", "severity": "warning", "status": "unclear_status", "details": details}
+
+    is_timeout = result.get("returncode") == 124 or "timeout" in str(result.get("error", "")).lower()
+    health = check_http_health(cfg.get("gateway_health_url", ""), min(5, cfg["gateway_timeout_sec"]))
+    details["health_url"] = health
+
+    if is_timeout:
+        return {"name": "gateway", "severity": "warning", "status": "status_command_timeout", "details": details}
+
+    if health.get("ok"):
+        return {"name": "gateway", "severity": "warning", "status": "status_command_failed_health_ok", "details": details}
+
+    return {"name": "gateway", "severity": "critical", "status": "unreachable", "details": details}
 
 
 def check_telegram_channel(cfg: Dict[str, Any]) -> Dict[str, Any]:
     result = run_cmd(cfg["channels_command"], cfg["channels_timeout_sec"])
     combined = f"{result['stdout']}\n{result['stderr']}".lower()
 
+    is_timeout = result.get("returncode") == 124 or "timeout" in str(result.get("error", "")).lower()
+    if is_timeout:
+        return {"name": "telegram_channel", "severity": "warning", "status": "status_command_timeout", "details": result}
+
     if not result["ok"]:
         return {"name": "telegram_channel", "severity": "critical", "status": "status_command_failed", "details": result}
 
-    if "telegram" not in combined:
-        return {"name": "telegram_channel", "severity": "warning", "status": "telegram_not_found", "details": result}
+    tele_lines = [ln.strip().lower() for ln in (result["stdout"] + "\n" + result["stderr"]).splitlines() if "telegram" in ln.lower()]
+    if not tele_lines:
+        if "telegram" not in combined:
+            return {"name": "telegram_channel", "severity": "warning", "status": "telegram_not_found", "details": result}
+        tele_lines = [combined]
 
-    healthy_words = ["running", "connected", "active", "ready", "ok", "enabled"]
-    unhealthy_words = ["stopped", "disconnected", "error", "failed", "offline", "disabled"]
+    tele_text = " | ".join(tele_lines)
 
-    tele_lines = [ln.strip().lower() for ln in result["stdout"].splitlines() if "telegram" in ln.lower()]
-    tele_text = " | ".join(tele_lines) if tele_lines else combined
+    healthy_patterns = [
+        r"\bconnected\b",
+        r"\brunning\b",
+        r"\bactive\b",
+        r"\bready\b",
+        r"\benabled\b",
+        r"\bok\b",
+    ]
+    unhealthy_patterns = [
+        r"\bdisconnected\b",
+        r"\boffline\b",
+        r"\bstopped\b",
+        r"\bdisabled\b",
+        r"\bfailed\b",
+        r"\berror\b",
+        r"\bnot\s+connected\b",
+    ]
 
-    if any(w in tele_text for w in unhealthy_words):
+    if any(re.search(pat, tele_text, flags=re.IGNORECASE) for pat in unhealthy_patterns):
         return {"name": "telegram_channel", "severity": "critical", "status": "not_running", "details": result}
 
-    if any(w in tele_text for w in healthy_words):
+    if any(re.search(pat, tele_text, flags=re.IGNORECASE) for pat in healthy_patterns):
         return {"name": "telegram_channel", "severity": "ok", "status": "running", "details": result}
 
     return {"name": "telegram_channel", "severity": "warning", "status": "unknown_state", "details": result}
@@ -230,6 +313,33 @@ def tail_file(path: Path, max_lines: int) -> List[str]:
         return []
     lines = data.splitlines()
     return lines[-max_lines:] if max_lines > 0 else lines
+
+
+def _is_relevant_error_line(line: str) -> bool:
+    s = line.strip()
+
+    # Prefer structured OpenClaw JSON log level when available.
+    if s.startswith("{"):
+        try:
+            obj = json.loads(s)
+            meta = obj.get("_meta", {}) if isinstance(obj, dict) else {}
+            level = str(meta.get("logLevelName", "")).upper()
+            if level in {"ERROR", "FATAL", "CRITICAL", "PANIC"}:
+                return True
+            if level and level in {"TRACE", "DEBUG", "INFO", "WARN", "WARNING"}:
+                return False
+        except Exception:
+            pass
+
+    fallback_patterns = [
+        r"\btraceback\b",
+        r"\bfatal\b",
+        r"\bpanic\b",
+        r"\bcritical\b",
+        r"\berror\b",
+        r"\bexception\b",
+    ]
+    return any(re.search(pat, s, flags=re.IGNORECASE) for pat in fallback_patterns)
 
 
 def check_logs(cfg: Dict[str, Any], thresholds: Dict[str, Any]) -> Dict[str, Any]:
@@ -246,15 +356,26 @@ def check_logs(cfg: Dict[str, Any], thresholds: Dict[str, Any]) -> Dict[str, Any
 
     selected = [Path(p) for p in log_paths[:3]]
     scanned_lines = 0
+    ignored_lines = 0
     error_lines: List[str] = []
-    err_re = re.compile(r"\b(error|fatal|exception|traceback|panic|critical)\b", re.IGNORECASE)
+
+    ignore_res: List[re.Pattern[str]] = []
+    for pat in cfg.get("log_ignore_patterns", []):
+        try:
+            ignore_res.append(re.compile(pat, re.IGNORECASE))
+        except re.error:
+            continue
 
     for p in selected:
         lines = tail_file(p, cfg["log_tail_lines"])
         scanned_lines += len(lines)
         for ln in lines:
-            if err_re.search(ln):
-                error_lines.append(ln.strip())
+            if not _is_relevant_error_line(ln):
+                continue
+            if any(rx.search(ln) for rx in ignore_res):
+                ignored_lines += 1
+                continue
+            error_lines.append(ln.strip())
 
     count = len(error_lines)
     if count >= thresholds["critical_error_lines"]:
@@ -272,6 +393,8 @@ def check_logs(cfg: Dict[str, Any], thresholds: Dict[str, Any]) -> Dict[str, Any
             "pattern": pattern,
             "matched_files": [str(p) for p in selected],
             "scanned_lines": scanned_lines,
+            "ignored_error_lines": ignored_lines,
+            "relevant_error_lines": count,
             "error_lines": count,
             "samples": error_lines[:10],
         },
@@ -497,7 +620,7 @@ def main() -> int:
         "meta": {
             "host": os.uname().nodename,
             "config_path": str(config_path),
-            "runner": "vf-ops-watch/0.2",
+            "runner": "vf-ops-watch/0.2.1",
         },
     }
     report["summary"] = build_summary(report)
