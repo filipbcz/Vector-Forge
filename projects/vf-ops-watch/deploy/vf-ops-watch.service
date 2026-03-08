@@ -7,11 +7,13 @@ Wants=network-online.target
 Type=oneshot
 User=ubuntu
 WorkingDirectory=/home/ubuntu/vector-forge/projects/vf-ops-watch
+Environment="PATH=/home/ubuntu/.npm-global/bin:/usr/local/bin:/usr/bin:/bin"
 ExecStart=/usr/bin/python3 /home/ubuntu/vector-forge/projects/vf-ops-watch/runner.py --config /home/ubuntu/vector-forge/projects/vf-ops-watch/config.yaml
+SuccessExitStatus=1 2
 
 # Hardening (safe defaults for local script)
 NoNewPrivileges=true
-PrivateTmp=true
+PrivateTmp=false
 ProtectSystem=full
 ProtectHome=false
 ReadWritePaths=/home/ubuntu/vector-forge/projects/vf-ops-watch/out
