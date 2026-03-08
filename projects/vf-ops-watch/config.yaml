@@ -1,0 +1,17 @@
+checks:
+  gateway_command: "openclaw gateway status"
+  gateway_health_url: ""
+  gateway_timeout_sec: 8
+
+  channels_command: "openclaw channels status"
+  channels_timeout_sec: 8
+
+  log_file_glob: "/tmp/openclaw/openclaw-*.log"
+  log_tail_lines: 300
+
+thresholds:
+  warning_error_lines: 1
+  critical_error_lines: 5
+
+paths:
+  output_json: "out/latest.json"
