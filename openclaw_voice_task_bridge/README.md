@@ -30,12 +30,33 @@ debug_logging: true
 telegram_forward: false
 telegram_bot_token: ""
 telegram_chat_id: ""
+deliver_agent_reply_to_telegram: true
+agent_reply_prefix: "[Astra Reply]"
 ha_shared_token: "<VOLITELNÝ_SDÍLENÝ_TOKEN>"
 listen_port: 8099
 http_timeout_seconds: 20
 dispatch_retries: 2
 retry_backoff_seconds: 1
 ```
+
+---
+
+## Visible reply delivery
+
+Po úspěšném dispatchi v `mode: gateway_rpc` může add-on poslat viditelnou odpověď agenta zpět do Telegramu.
+
+Přesná konfigurace:
+
+```yaml
+deliver_agent_reply_to_telegram: true
+agent_reply_prefix: "[Astra Reply]"
+telegram_bot_token: "<TELEGRAM_BOT_TOKEN>"
+telegram_chat_id: "<TELEGRAM_CHAT_ID>"
+```
+
+Chování:
+- pokud se odpověď z gateway (`openresponses` nebo `chat_completions`) podaří extrahovat, odešle se do Telegramu s prefixem
+- pokud extrakce selže, odešle se fallback text: `Úkol přijat a zpracován.`
 
 ---
 

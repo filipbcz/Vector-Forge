@@ -75,6 +75,8 @@ def _load_config() -> Dict[str, Any]:
         "telegram_forward": _get_bool_env("TELEGRAM_FORWARD", default=False),
         "telegram_bot_token": _get_env("TELEGRAM_BOT_TOKEN", default="").strip(),
         "telegram_chat_id": _get_env("TELEGRAM_CHAT_ID", default="").strip(),
+        "deliver_agent_reply_to_telegram": _get_bool_env("DELIVER_AGENT_REPLY_TO_TELEGRAM", default=True),
+        "agent_reply_prefix": _get_env("AGENT_REPLY_PREFIX", default="[Astra Reply]").strip() or "[Astra Reply]",
         "ha_shared_token": _get_env("HA_SHARED_TOKEN", default=""),
         "listen_port": _get_int_env("LISTEN_PORT", default=8099),
         "http_timeout_seconds": _get_int_env("HTTP_TIMEOUT_SECONDS", default=20),
@@ -355,9 +357,77 @@ def _send_to_openclaw_gateway_rpc(config: Dict[str, Any], text: str) -> Dict[str
     )
 
 
-def _send_to_telegram(config: Dict[str, Any], text: str) -> Dict[str, Any]:
+def _extract_text_from_content_node(node: Any) -> str:
+    if isinstance(node, str):
+        return node.strip()
+
+    if isinstance(node, dict):
+        text_value = node.get("text")
+        if isinstance(text_value, str) and text_value.strip():
+            return text_value.strip()
+        if isinstance(text_value, dict):
+            nested = text_value.get("value")
+            if isinstance(nested, str) and nested.strip():
+                return nested.strip()
+        for key in ("content", "message"):
+            if key in node:
+                extracted = _extract_text_from_content_node(node.get(key))
+                if extracted:
+                    return extracted
+        return ""
+
+    if isinstance(node, list):
+        chunks: List[str] = []
+        for item in node:
+            extracted = _extract_text_from_content_node(item)
+            if extracted:
+                chunks.append(extracted)
+        return "\n".join(chunks).strip()
+
+    return ""
+
+
+def _extract_reply_text_from_gateway(method: str, data: Dict[str, Any]) -> str:
+    if method == "openresponses":
+        output_text = data.get("output_text")
+        if isinstance(output_text, str) and output_text.strip():
+            return output_text.strip()
+
+        output_items = data.get("output")
+        extracted = _extract_text_from_content_node(output_items)
+        if extracted:
+            return extracted
+
+        nested_response = data.get("response")
+        if isinstance(nested_response, dict):
+            nested_extracted = _extract_reply_text_from_gateway("openresponses", nested_response)
+            if nested_extracted:
+                return nested_extracted
+
+    if method == "chat_completions":
+        choices = data.get("choices")
+        if isinstance(choices, list):
+            for choice in choices:
+                if not isinstance(choice, dict):
+                    continue
+                message = choice.get("message", {})
+                content = message.get("content")
+                extracted = _extract_text_from_content_node(content)
+                if extracted:
+                    return extracted
+
+        nested_response = data.get("response")
+        if isinstance(nested_response, dict):
+            nested_extracted = _extract_reply_text_from_gateway("chat_completions", nested_response)
+            if nested_extracted:
+                return nested_extracted
+
+    return ""
+
+
+def _send_telegram_message(config: Dict[str, Any], text: str) -> Dict[str, Any]:
     telegram_url = f"https://api.telegram.org/bot{config['telegram_bot_token']}/sendMessage"
-    payload = {"chat_id": config["telegram_chat_id"], "text": f"[HA Voice Task] {text}"}
+    payload = {"chat_id": config["telegram_chat_id"], "text": text}
 
     response = requests.post(telegram_url, json=payload, timeout=config["http_timeout_seconds"])
     data = _parse_json_response(response)
@@ -367,6 +437,10 @@ def _send_to_telegram(config: Dict[str, Any], text: str) -> Dict[str, Any]:
         raise RuntimeError(f"Telegram API error: status={response.status_code}, description={description}")
 
     return data
+
+
+def _send_to_telegram(config: Dict[str, Any], text: str) -> Dict[str, Any]:
+    return _send_telegram_message(config, f"[HA Voice Task] {text}")
 
 
 def _dispatch_task(config: Dict[str, Any], text: str) -> Tuple[str, Dict[str, Any]]:
@@ -429,10 +503,33 @@ def task() -> Any:
             "attempted_transport": dispatch_result.get("transport"),
             "attempted_method": dispatch_result.get("method"),
             "attempts": dispatch_result.get("attempts", []),
+            "reply_extracted": False,
+            "reply_delivered": False,
         },
     }
 
     if dispatch_mode == "gateway_rpc":
+        reply_text = _extract_reply_text_from_gateway(
+            dispatch_result.get("method", ""),
+            dispatch_result.get("response", {}) if isinstance(dispatch_result.get("response"), dict) else {},
+        )
+        response_payload["diagnostics"]["reply_extracted"] = bool(reply_text)
+
+        can_deliver_reply = (
+            config.get("deliver_agent_reply_to_telegram", True)
+            and bool(config.get("telegram_bot_token"))
+            and bool(config.get("telegram_chat_id"))
+        )
+        if can_deliver_reply:
+            reply_body = reply_text or "Úkol přijat a zpracován."
+            prefix = config.get("agent_reply_prefix", "[Astra Reply]")
+            prefixed_reply = f"{prefix} {reply_body}".strip() if prefix else reply_body
+            try:
+                _send_telegram_message(config, prefixed_reply)
+                response_payload["diagnostics"]["reply_delivered"] = True
+            except Exception:
+                response_payload["diagnostics"]["reply_delivered"] = False
+
         response_payload["message"] = "Task delivered to OpenClaw Gateway RPC"
     elif dispatch_mode == "telegram_fallback":
         response_payload["message"] = "Gateway RPC dispatch failed, task forwarded to Telegram fallback"

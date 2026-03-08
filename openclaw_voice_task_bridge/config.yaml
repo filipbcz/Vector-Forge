@@ -1,6 +1,6 @@
 name: "OpenClaw Voice Task Bridge"
 slug: "openclaw_voice_task_bridge"
-version: "0.3.0"
+version: "0.3.1"
 description: "Forward voice tasks from Home Assistant directly to OpenClaw Gateway RPC (with optional Telegram fallback)"
 url: "https://github.com/filip/vector-forge"
 arch:
@@ -30,6 +30,8 @@ options:
   telegram_forward: false
   telegram_bot_token: ""
   telegram_chat_id: ""
+  deliver_agent_reply_to_telegram: true
+  agent_reply_prefix: "[Astra Reply]"
   ha_shared_token: ""
   listen_port: 8099
   http_timeout_seconds: 20
@@ -55,6 +57,8 @@ schema:
   telegram_forward: bool?
   telegram_bot_token: str?
   telegram_chat_id: str?
+  deliver_agent_reply_to_telegram: bool?
+  agent_reply_prefix: str?
   ha_shared_token: str?
   listen_port: port
   http_timeout_seconds: int?
