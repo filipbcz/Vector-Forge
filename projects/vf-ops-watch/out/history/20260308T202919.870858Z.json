@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-08T20:29:23.172860+00:00",
+  "timestamp": "2026-03-08T20:29:19.870858+00:00",
   "overall_severity": "critical",
   "exit_code": 2,
   "checks": [
@@ -69,7 +69,7 @@
     "config_path": "/home/ubuntu/vector-forge/projects/vf-ops-watch/config.yaml",
     "runner": "vf-ops-watch/0.3.0"
   },
-  "summary": "VF Ops Watch [CRITICAL] @ 2026-03-08T20:29:23.172860+00:00\n- gateway: WARNING (status_command_timeout)\n- telegram_channel: WARNING (status_command_timeout)\n- logs: CRITICAL (scanned)",
+  "summary": "VF Ops Watch [CRITICAL] @ 2026-03-08T20:29:19.870858+00:00\n- gateway: WARNING (status_command_timeout)\n- telegram_channel: WARNING (status_command_timeout)\n- logs: CRITICAL (scanned)",
   "alerting": {
     "enabled": false,
     "eligible": false,
@@ -96,10 +96,5 @@
         "failures": 3
       }
     ]
-  },
-  "artifacts": {
-    "latest_json": "/home/ubuntu/vector-forge/projects/vf-ops-watch/out/latest.json",
-    "history_snapshot": "/home/ubuntu/vector-forge/projects/vf-ops-watch/out/history/20260308T202923.172860Z.json",
-    "timeline": "/home/ubuntu/vector-forge/projects/vf-ops-watch/out/timeline.md"
   }
 }

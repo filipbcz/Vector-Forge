@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""VF Ops Watch v0.2.1
+"""VF Ops Watch v0.3.0
 
 Local health-check runner for OpenClaw stack.
 - Checks gateway reachability
@@ -13,6 +13,7 @@ Local health-check runner for OpenClaw stack.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import datetime as dt
 import glob
 import hashlib
@@ -29,6 +30,18 @@ import requests
 
 SEVERITY_ORDER = {"ok": 0, "warning": 1, "critical": 2}
 EXIT_CODE = {"ok": 0, "warning": 1, "critical": 2}
+
+
+def _parse_iso_ts(value: str) -> Optional[dt.datetime]:
+    if not value:
+        return None
+    try:
+        parsed = dt.datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+    return parsed.astimezone(dt.timezone.utc)
 
 
 def _strip_quotes(s: str) -> str:
@@ -572,6 +585,120 @@ def process_alerting(report: Dict[str, Any], config: Dict[str, Any], state_path:
     return result
 
 
+def history_dir_from_output(output_path: Path) -> Path:
+    return output_path.parent / "history"
+
+
+def save_history_snapshot(report: Dict[str, Any], history_dir: Path) -> Path:
+    history_dir.mkdir(parents=True, exist_ok=True)
+    ts = _parse_iso_ts(str(report.get("timestamp", ""))) or dt.datetime.now(dt.timezone.utc)
+    filename = ts.strftime("%Y%m%dT%H%M%S.%fZ.json")
+    snap_path = history_dir / filename
+    snap_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+    return snap_path
+
+
+def load_history_reports(history_dir: Path) -> List[Dict[str, Any]]:
+    if not history_dir.exists():
+        return []
+
+    reports: List[Dict[str, Any]] = []
+    for p in sorted(history_dir.glob("*.json")):
+        try:
+            item = json.loads(p.read_text())
+            if isinstance(item, dict):
+                item["_history_file"] = str(p)
+                reports.append(item)
+        except Exception:
+            continue
+
+    reports.sort(key=lambda r: _parse_iso_ts(str(r.get("timestamp", ""))) or dt.datetime.min.replace(tzinfo=dt.timezone.utc))
+    return reports
+
+
+def build_trends_24h(history_reports: List[Dict[str, Any]], now: dt.datetime) -> Dict[str, Any]:
+    cutoff = now - dt.timedelta(hours=24)
+    recent: List[Dict[str, Any]] = []
+    for rpt in history_reports:
+        ts = _parse_iso_ts(str(rpt.get("timestamp", "")))
+        if ts and ts >= cutoff:
+            recent.append(rpt)
+
+    warning_count = sum(1 for r in recent if r.get("overall_severity") == "warning")
+    critical_count = sum(1 for r in recent if r.get("overall_severity") == "critical")
+
+    failures = Counter()
+    for rpt in recent:
+        for c in rpt.get("checks", []):
+            if c.get("severity") != "ok":
+                key = str(c.get("name", "unknown"))
+                failures[key] += 1
+
+    top = [{"check": k, "failures": v} for k, v in failures.most_common(3)]
+
+    return {
+        "window": "24h",
+        "runs": len(recent),
+        "warning_runs": warning_count,
+        "critical_runs": critical_count,
+        "top_check_failures": top,
+    }
+
+
+def build_timeline_markdown(history_reports: List[Dict[str, Any]]) -> str:
+    lines = [
+        "# VF Ops Watch Incident Timeline",
+        "",
+        f"Generated: {dt.datetime.now(dt.timezone.utc).isoformat()}",
+        "",
+        "Chronologický přehled incidentů a změn severity.",
+        "",
+    ]
+
+    if not history_reports:
+        lines.extend(["_Zatím bez historie běhů._", ""])
+        return "\n".join(lines)
+
+    lines.extend(["## Severity changes", ""])
+    prev_sev: Optional[str] = None
+    change_count = 0
+    for rpt in history_reports:
+        ts = str(rpt.get("timestamp", "unknown"))
+        sev = str(rpt.get("overall_severity", "unknown"))
+        if prev_sev is not None and sev != prev_sev:
+            change_count += 1
+            lines.append(f"- **{ts}**: severity change `{prev_sev}` → `{sev}`")
+        prev_sev = sev
+
+    if change_count == 0:
+        lines.append("- No severity changes recorded yet.")
+
+    lines.extend(["", "## Incident events", ""])
+    incident_count = 0
+    for rpt in history_reports:
+        sev = str(rpt.get("overall_severity", "ok"))
+        if sev == "ok":
+            continue
+        incident_count += 1
+        ts = str(rpt.get("timestamp", "unknown"))
+        failing = []
+        for c in rpt.get("checks", []):
+            if c.get("severity") != "ok":
+                failing.append(f"{c.get('name', 'unknown')}={c.get('severity', 'unknown')}/{c.get('status', 'unknown')}")
+        lines.append(f"- **{ts}** [{sev.upper()}] — {', '.join(failing) if failing else 'incident without check details'}")
+
+    if incident_count == 0:
+        lines.append("- No warning/critical incidents in history.")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_timeline(history_reports: List[Dict[str, Any]], timeline_path: Path) -> None:
+    timeline_path.parent.mkdir(parents=True, exist_ok=True)
+    timeline_path.write_text(build_timeline_markdown(history_reports))
+
+
 def load_config(config_path: Path) -> Dict[str, Any]:
     if not config_path.exists():
         raise FileNotFoundError(f"Config not found: {config_path}")
@@ -620,7 +747,7 @@ def main() -> int:
         "meta": {
             "host": os.uname().nodename,
             "config_path": str(config_path),
-            "runner": "vf-ops-watch/0.2.1",
+            "runner": "vf-ops-watch/0.3.0",
         },
     }
     report["summary"] = build_summary(report)
@@ -632,10 +759,27 @@ def main() -> int:
     if not output_path.is_absolute():
         output_path = (config_path.parent / output_path).resolve()
 
+    history_dir = history_dir_from_output(output_path)
+    timeline_path = output_path.parent / "timeline.md"
+
+    # Trends include this run + available history from the last 24h.
+    history_reports_before = load_history_reports(history_dir)
+    report["trends_24h"] = build_trends_24h(history_reports_before + [report], start)
+
     try:
+        # v0.3 runner flow: latest.json + history snapshot + timeline.md
+        write_json_report(output_path, report)
+        snapshot_path = save_history_snapshot(report, history_dir)
+        history_reports = load_history_reports(history_dir)
+        write_timeline(history_reports, timeline_path)
+
+        report.setdefault("artifacts", {})
+        report["artifacts"]["latest_json"] = str(output_path)
+        report["artifacts"]["history_snapshot"] = str(snapshot_path)
+        report["artifacts"]["timeline"] = str(timeline_path)
         write_json_report(output_path, report)
     except Exception as e:
-        print(f"Failed writing report: {e}", file=sys.stderr)
+        print(f"Failed writing report artifacts: {e}", file=sys.stderr)
         return 2
 
     print(report["summary"])

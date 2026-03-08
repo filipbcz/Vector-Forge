@@ -96,10 +96,5 @@
         "failures": 3
       }
     ]
-  },
-  "artifacts": {
-    "latest_json": "/home/ubuntu/vector-forge/projects/vf-ops-watch/out/latest.json",
-    "history_snapshot": "/home/ubuntu/vector-forge/projects/vf-ops-watch/out/history/20260308T202923.172860Z.json",
-    "timeline": "/home/ubuntu/vector-forge/projects/vf-ops-watch/out/timeline.md"
   }
 }

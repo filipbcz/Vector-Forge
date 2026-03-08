@@ -1,4 +1,4 @@
-# VF Ops Watch v0.2
+# VF Ops Watch v0.3
 
 Lokální health-check runner pro OpenClaw stack.
 
@@ -8,20 +8,50 @@ Lokální health-check runner pro OpenClaw stack.
 2. **Telegram channel status** přes `openclaw channels status`
 3. **Recent log errors** v `/tmp/openclaw/openclaw-*.log` (poslední N řádků)
 
-## Výstupy
+## Výstupy po každém běhu
 
-- JSON report: `projects/vf-ops-watch/out/latest.json`
-- Rate-limit state: `projects/vf-ops-watch/out/state.json`
-- Textový summary na stdout
+Runner ve v0.3 po každém spuštění zapíše:
 
-Ukázka summary:
+- `out/latest.json` — poslední report (včetně `trends_24h`)
+- `out/history/<timestamp>.json` — snapshot konkrétního běhu
+- `out/timeline.md` — incident timeline generovaná z historie
+- `out/state.json` — anti-spam/rate-limit stav alertingu
 
-```text
-VF Ops Watch [WARNING] @ 2026-03-08T18:00:00+00:00
-- gateway: OK (reachable)
-- telegram_channel: WARNING (unknown_state)
-- logs: WARNING (scanned)
+## Trendy (24h)
+
+Pole `trends_24h` v `latest.json` obsahuje jednoduché agregace za posledních 24 hodin z historie běhů:
+
+- `warning_runs` — počet běhů s overall severity `warning`
+- `critical_runs` — počet běhů s overall severity `critical`
+- `top_check_failures` — top 3 checky, které nejčastěji failovaly
+
+Příklad:
+
+```json
+"trends_24h": {
+  "window": "24h",
+  "runs": 12,
+  "warning_runs": 4,
+  "critical_runs": 3,
+  "top_check_failures": [
+    {"check": "logs", "failures": 7},
+    {"check": "gateway", "failures": 5},
+    {"check": "telegram_channel", "failures": 4}
+  ]
+}
 ```
+
+## Incident timeline
+
+`out/timeline.md` obsahuje:
+
+1. **Severity changes** — změny mezi běhy (např. `ok → warning → critical`)
+2. **Incident events** — chronologický seznam warning/critical běhů s failing checky
+
+Jak to číst:
+
+- část *Severity changes* rychle ukazuje eskalace/deeskalace stavu
+- část *Incident events* dává detail, které checky incident způsobily
 
 ## Exit codes
 
@@ -44,7 +74,7 @@ Soubor `config.yaml`:
 - `checks.*` — healthcheck příkazy a log scan
 - `thresholds.warning_error_lines` — od kolika error řádků WARNING
 - `thresholds.critical_error_lines` — od kolika error řádků CRITICAL
-- `paths.output_json` — cesta k reportu
+- `paths.output_json` — cesta k reportu (`latest.json`)
 
 ### Alerting (Telegram)
 
@@ -62,18 +92,21 @@ Odeslání běží přes Telegram Bot API (`requests`), ne přes OpenClaw messag
 
 Runner drží stav v `out/state.json` (per-severity).
 
-- Porovnává se fingerprint problému (kombinace failing checků + severity).
-- Pokud přijde stejný problém v cooldown okně pro danou severity, alert se **nepošle**.
-- Po úspěšném odeslání se aktualizuje timestamp + fingerprint v `state.json`.
+- Porovnává se fingerprint problému (kombinace failing checků + severity)
+- Pokud přijde stejný problém v cooldown okně pro danou severity, alert se **nepošle**
+- Po úspěšném odeslání se aktualizuje timestamp + fingerprint v `state.json`
 
-## Test alertu (smoke)
+## Smoke test
 
 ```bash
 cd /home/ubuntu/vector-forge/projects/vf-ops-watch
-./test/smoke_alerts.sh
+python3 runner.py --config config.yaml || true
+python3 runner.py --config config.yaml || true
+ls -1 out/history | tail -n 5
+sed -n '1,80p' out/timeline.md
 ```
 
-Smoke test vygeneruje simulované warning/critical běhy a ověří, že se v `out/latest.json` vytvoří alert payload (`alerting.payload`) při splněném thresholdu.
+Očekávání: vzniknou minimálně 2 nové snapshoty v `out/history/` a aktualizuje se `out/timeline.md`.
 
 ## Nasazení na Ubuntu (systemd timer)
 
