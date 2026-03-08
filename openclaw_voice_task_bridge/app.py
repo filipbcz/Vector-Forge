@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -25,39 +26,88 @@ def _get_bool_env(name: str, default: bool = False) -> bool:
     return raw in {"1", "true", "yes", "on"}
 
 
+def _get_int_env(name: str, default: int) -> int:
+    raw = _get_env(name, default=str(default)).strip()
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid integer for {name}: {raw}") from exc
+
+
 def _load_config() -> Dict[str, Any]:
+    mode = _get_env("MODE", default="gateway_rpc").strip().lower() or "gateway_rpc"
+
+    # New keys
+    gateway_url = _get_env("GATEWAY_URL", default="").strip()
+    gateway_token = _get_env("GATEWAY_TOKEN", default="").strip()
+    gateway_method = _get_env("GATEWAY_METHOD", default="openresponses").strip().lower() or "openresponses"
+    gateway_target = _get_env("GATEWAY_TARGET", default="").strip()
+    account_id = _get_env("ACCOUNT_ID", default="default").strip() or "default"
+    channel = _get_env("CHANNEL", default="telegram").strip() or "telegram"
+
+    # Backward compatibility aliases (deprecated)
+    legacy_openclaw_base_url = _get_env("OPENCLAW_BASE_URL", default="").strip()
+    legacy_openclaw_token = _get_env("OPENCLAW_TOKEN", default="").strip()
+    legacy_openclaw_to = _get_env("OPENCLAW_TO", default="").strip()
+    legacy_openclaw_channel = _get_env("OPENCLAW_CHANNEL", default="").strip()
+    legacy_openclaw_account_id = _get_env("OPENCLAW_ACCOUNT_ID", default="").strip()
+
+    if not gateway_url and legacy_openclaw_base_url:
+        gateway_url = legacy_openclaw_base_url
+    if not gateway_token and legacy_openclaw_token:
+        gateway_token = legacy_openclaw_token
+    if not gateway_target and legacy_openclaw_to:
+        gateway_target = legacy_openclaw_to
+    if channel == "telegram" and legacy_openclaw_channel:
+        channel = legacy_openclaw_channel
+    if account_id == "default" and legacy_openclaw_account_id:
+        account_id = legacy_openclaw_account_id
+
     return {
-        "mode": _get_env("MODE", default="gateway").strip().lower() or "gateway",
-        "openclaw_base_url": _get_env("OPENCLAW_BASE_URL", default="").strip(),
-        "openclaw_token": _get_env("OPENCLAW_TOKEN", default="").strip(),
-        "openclaw_to": _get_env("OPENCLAW_TO", default="").strip(),
-        "openclaw_channel": _get_env("OPENCLAW_CHANNEL", default="telegram").strip() or "telegram",
-        "openclaw_account_id": _get_env("OPENCLAW_ACCOUNT_ID", default="default").strip()
-        or "default",
-        "openclaw_dispatch_path": _get_env("OPENCLAW_DISPATCH_PATH", default="/message/send").strip()
-        or "/message/send",
+        "mode": mode,
+        "gateway_url": gateway_url,
+        "gateway_token": gateway_token,
+        "gateway_method": gateway_method,
+        "gateway_target": gateway_target,
+        "account_id": account_id,
+        "channel": channel,
         "debug_logging": _get_bool_env("DEBUG_LOGGING", default=True),
         "telegram_forward": _get_bool_env("TELEGRAM_FORWARD", default=False),
         "telegram_bot_token": _get_env("TELEGRAM_BOT_TOKEN", default="").strip(),
         "telegram_chat_id": _get_env("TELEGRAM_CHAT_ID", default="").strip(),
-        "ha_shared_token": _get_env("HA_SHARED_TOKEN", required=False, default=""),
-        "listen_port": int(_get_env("LISTEN_PORT", required=False, default="8099")),
-        "http_timeout_seconds": int(_get_env("HTTP_TIMEOUT_SECONDS", default="20")),
+        "ha_shared_token": _get_env("HA_SHARED_TOKEN", default=""),
+        "listen_port": _get_int_env("LISTEN_PORT", default=8099),
+        "http_timeout_seconds": _get_int_env("HTTP_TIMEOUT_SECONDS", default=20),
+        "dispatch_retries": max(1, _get_int_env("DISPATCH_RETRIES", default=2)),
+        "retry_backoff_seconds": max(0, _get_int_env("RETRY_BACKOFF_SECONDS", default=1)),
+        "agent_id": _get_env("AGENT_ID", default="main").strip() or "main",
+        "session_key": _get_env("SESSION_KEY", default="").strip(),
+        "deprecated_keys_used": {
+            "openclaw_base_url": bool(legacy_openclaw_base_url),
+            "openclaw_token": bool(legacy_openclaw_token),
+            "openclaw_to": bool(legacy_openclaw_to),
+            "openclaw_channel": bool(legacy_openclaw_channel),
+            "openclaw_account_id": bool(legacy_openclaw_account_id),
+        },
     }
 
 
 def _validate_config(config: Dict[str, Any]) -> None:
-    mode = config["mode"]
-    if mode not in {"gateway", "telegram"}:
-        raise RuntimeError("Invalid MODE. Allowed values: gateway | telegram")
+    if config["mode"] not in {"gateway_rpc", "telegram", "gateway"}:
+        raise RuntimeError("Invalid MODE. Allowed values: gateway_rpc | telegram | gateway")
 
-    if mode == "gateway":
-        if not config["openclaw_base_url"]:
-            raise RuntimeError("OPENCLAW_BASE_URL is required when MODE=gateway")
-        if not config["openclaw_to"]:
-            raise RuntimeError("OPENCLAW_TO is required when MODE=gateway")
+    if config["mode"] == "gateway":
+        config["mode"] = "gateway_rpc"
 
-    if mode == "telegram" or config["telegram_forward"]:
+    if config["mode"] == "gateway_rpc":
+        if not config["gateway_url"]:
+            raise RuntimeError("GATEWAY_URL is required when MODE=gateway_rpc")
+        if config["gateway_method"] not in {"openresponses", "chat_completions", "tools_invoke_message"}:
+            raise RuntimeError(
+                "Invalid GATEWAY_METHOD. Allowed: openresponses | chat_completions | tools_invoke_message"
+            )
+
+    if config["mode"] == "telegram" or config["telegram_forward"]:
         if not config["telegram_bot_token"]:
             raise RuntimeError(
                 "TELEGRAM_BOT_TOKEN is required when MODE=telegram or TELEGRAM_FORWARD=true"
@@ -75,22 +125,13 @@ def _validate_ha_token(expected: str) -> bool:
     return provided == expected
 
 
-def _normalize_base_url(base_url: str) -> str:
-    return base_url.rstrip("/")
-
-
-def _normalize_dispatch_path(dispatch_path: str) -> str:
-    path = (dispatch_path or "").strip()
-    if not path:
-        return "/message/send"
-    segments = [segment for segment in path.split("/") if segment]
-    if not segments:
-        return "/"
-    return "/" + "/".join(segments)
-
-
-def _join_url(base_url: str, path: str) -> str:
-    return f"{base_url}{path}"
+def _normalize_gateway_base_url(gateway_url: str) -> str:
+    normalized = gateway_url.strip().rstrip("/")
+    if normalized.startswith("ws://"):
+        return "http://" + normalized[5:]
+    if normalized.startswith("wss://"):
+        return "https://" + normalized[6:]
+    return normalized
 
 
 def _parse_json_response(response: requests.Response) -> Dict[str, Any]:
@@ -109,139 +150,221 @@ def _truncate_text(value: Optional[str], max_len: int = 300) -> str:
     return value[:max_len]
 
 
-def _attempt_gateway_dispatch(
+def _post_json(
     *,
     url: str,
-    path: str,
     payload: Dict[str, Any],
     headers: Dict[str, str],
     timeout: int,
-    debug_logging: bool,
+    retries: int,
+    backoff_seconds: int,
+    method_name: str,
 ) -> Dict[str, Any]:
-    attempt: Dict[str, Any] = {"url": url, "path": path, "status": None, "body": "", "error": ""}
-
-    try:
-        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
-        attempt["status"] = response.status_code
-        data = _parse_json_response(response)
-
-        body_summary = data.get("error") or data.get("message") or data.get("_raw_text") or ""
-        attempt["body"] = _truncate_text(str(body_summary))
-
-        print(f"[voice-task-bridge] final_url={url} status_code={response.status_code}")
-
-        return {"response": response, "data": data, "attempt": attempt}
-    except requests.RequestException as exc:
-        attempt["error"] = _truncate_text(str(exc))
-        if debug_logging:
-            print(f"[voice-task-bridge] final_url={url} status_code=network_error")
-        return {"response": None, "data": {}, "attempt": attempt}
-
-
-def _send_to_openclaw_gateway(config: Dict[str, Any], text: str) -> Dict[str, Any]:
-    base_url = _normalize_base_url(config["openclaw_base_url"])
-    dispatch_path = _normalize_dispatch_path(config.get("openclaw_dispatch_path", "/message/send"))
-    timeout = config["http_timeout_seconds"]
-    debug_logging = bool(config.get("debug_logging", True))
-
-    headers: Dict[str, str] = {"Content-Type": "application/json"}
-    auth_used = bool(config["openclaw_token"])
-    if auth_used:
-        headers["Authorization"] = f"Bearer {config['openclaw_token']}"
-
-    payload = {
-        "channel": config["openclaw_channel"],
-        "accountId": config["openclaw_account_id"],
-        "account_id": config["openclaw_account_id"],
-        "target": config["openclaw_to"],
-        "to": config["openclaw_to"],
-        "message": text,
-    }
-
-    if debug_logging:
-        print(
-            f"[voice-task-bridge] selected_base_url={base_url} dispatch_path={dispatch_path}"
-        )
-
-    known_fallback_paths: List[str] = ["/api/v1/message/send", "/v1/message/send", "/message/send"]
-    fallback_paths = [p for p in known_fallback_paths if p != dispatch_path]
-
     attempts: List[Dict[str, Any]] = []
 
-    primary_url = _join_url(base_url, dispatch_path)
-    primary_result = _attempt_gateway_dispatch(
-        url=primary_url,
-        path=dispatch_path,
-        payload=payload,
-        headers=headers,
-        timeout=timeout,
-        debug_logging=debug_logging,
-    )
-    attempts.append(primary_result["attempt"])
-
-    primary_response = primary_result["response"]
-    primary_data = primary_result["data"]
-
-    if primary_response is not None and primary_response.status_code < 400:
-        return {
-            "endpoint": dispatch_path,
-            "status_code": primary_response.status_code,
-            "response": primary_data,
+    for attempt_idx in range(1, retries + 1):
+        attempt: Dict[str, Any] = {
+            "method": method_name,
+            "url": url,
+            "attempt": attempt_idx,
+            "status": None,
+            "body": "",
+            "error": "",
         }
 
-    should_try_fallback = debug_logging
-
-    if should_try_fallback:
-        for fallback_path in fallback_paths:
-            fallback_url = _join_url(base_url, fallback_path)
-            fallback_result = _attempt_gateway_dispatch(
-                url=fallback_url,
-                path=fallback_path,
-                payload=payload,
-                headers=headers,
-                timeout=timeout,
-                debug_logging=debug_logging,
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=timeout)
+            data = _parse_json_response(response)
+            attempt["status"] = response.status_code
+            attempt["body"] = _truncate_text(
+                str(data.get("error") or data.get("message") or data.get("_raw_text") or "")
             )
-            attempts.append(fallback_result["attempt"])
+            attempts.append(attempt)
 
-            fallback_response = fallback_result["response"]
-            fallback_data = fallback_result["data"]
-
-            if fallback_response is not None and fallback_response.status_code < 400:
+            if response.status_code < 500:
                 return {
-                    "endpoint": fallback_path,
-                    "status_code": fallback_response.status_code,
-                    "response": fallback_data,
+                    "ok": response.status_code < 400,
+                    "response": response,
+                    "data": data,
+                    "attempts": attempts,
                 }
+        except requests.RequestException as exc:
+            attempt["error"] = _truncate_text(str(exc))
+            attempts.append(attempt)
+
+        if attempt_idx < retries and backoff_seconds > 0:
+            time.sleep(backoff_seconds)
+
+    return {"ok": False, "response": None, "data": {}, "attempts": attempts}
+
+
+def _build_gateway_headers(token: str) -> Dict[str, str]:
+    headers: Dict[str, str] = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _dispatch_via_openresponses(config: Dict[str, Any], text: str) -> Dict[str, Any]:
+    base_url = _normalize_gateway_base_url(config["gateway_url"])
+    url = f"{base_url}/v1/responses"
+    headers = _build_gateway_headers(config["gateway_token"])
+
+    payload: Dict[str, Any] = {
+        "model": f"openclaw:{config['agent_id']}",
+        "input": text,
+        "stream": False,
+        "user": config["gateway_target"] or None,
+    }
+
+    result = _post_json(
+        url=url,
+        payload=payload,
+        headers=headers,
+        timeout=config["http_timeout_seconds"],
+        retries=config["dispatch_retries"],
+        backoff_seconds=config["retry_backoff_seconds"],
+        method_name="openresponses",
+    )
+
+    if result["ok"]:
+        return {"transport": "http", "method": "openresponses", "attempts": result["attempts"], "response": result["data"]}
 
     raise GatewayDispatchError(
-        "Unable to dispatch task to OpenClaw Gateway",
+        "Gateway openresponses dispatch failed",
         {
-            "attempted_urls": [attempt["url"] for attempt in attempts],
-            "attempts": attempts,
-            "auth_used": auth_used,
+            "attempted_transport": "http",
+            "attempted_method": "openresponses",
+            "attempts": result["attempts"],
+        },
+    )
+
+
+def _dispatch_via_chat_completions(config: Dict[str, Any], text: str) -> Dict[str, Any]:
+    base_url = _normalize_gateway_base_url(config["gateway_url"])
+    url = f"{base_url}/v1/chat/completions"
+    headers = _build_gateway_headers(config["gateway_token"])
+
+    if config["agent_id"]:
+        headers["x-openclaw-agent-id"] = config["agent_id"]
+    if config["session_key"]:
+        headers["x-openclaw-session-key"] = config["session_key"]
+
+    payload = {
+        "model": "openclaw",
+        "messages": [{"role": "user", "content": text}],
+        "stream": False,
+        "user": config["gateway_target"] or None,
+    }
+
+    result = _post_json(
+        url=url,
+        payload=payload,
+        headers=headers,
+        timeout=config["http_timeout_seconds"],
+        retries=config["dispatch_retries"],
+        backoff_seconds=config["retry_backoff_seconds"],
+        method_name="chat_completions",
+    )
+
+    if result["ok"]:
+        return {
+            "transport": "http",
+            "method": "chat_completions",
+            "attempts": result["attempts"],
+            "response": result["data"],
+        }
+
+    raise GatewayDispatchError(
+        "Gateway chat_completions dispatch failed",
+        {
+            "attempted_transport": "http",
+            "attempted_method": "chat_completions",
+            "attempts": result["attempts"],
+        },
+    )
+
+
+def _dispatch_via_tools_invoke_message(config: Dict[str, Any], text: str) -> Dict[str, Any]:
+    base_url = _normalize_gateway_base_url(config["gateway_url"])
+    url = f"{base_url}/tools/invoke"
+    headers = _build_gateway_headers(config["gateway_token"])
+
+    payload: Dict[str, Any] = {
+        "tool": "message",
+        "action": "send",
+        "args": {
+            "channel": config["channel"],
+            "target": config["gateway_target"],
+            "message": text,
+            "accountId": config["account_id"],
+        },
+    }
+
+    result = _post_json(
+        url=url,
+        payload=payload,
+        headers=headers,
+        timeout=config["http_timeout_seconds"],
+        retries=config["dispatch_retries"],
+        backoff_seconds=config["retry_backoff_seconds"],
+        method_name="tools_invoke_message",
+    )
+
+    if result["ok"]:
+        return {
+            "transport": "http",
+            "method": "tools_invoke_message",
+            "attempts": result["attempts"],
+            "response": result["data"],
+        }
+
+    raise GatewayDispatchError(
+        "Gateway tools_invoke message dispatch failed",
+        {
+            "attempted_transport": "http",
+            "attempted_method": "tools_invoke_message",
+            "attempts": result["attempts"],
+        },
+    )
+
+
+def _send_to_openclaw_gateway_rpc(config: Dict[str, Any], text: str) -> Dict[str, Any]:
+    method = config["gateway_method"]
+
+    method_order = {
+        "openresponses": [_dispatch_via_openresponses, _dispatch_via_chat_completions],
+        "chat_completions": [_dispatch_via_chat_completions, _dispatch_via_openresponses],
+        "tools_invoke_message": [_dispatch_via_tools_invoke_message],
+    }[method]
+
+    errors: List[Dict[str, Any]] = []
+    for fn in method_order:
+        try:
+            return fn(config, text)
+        except GatewayDispatchError as exc:
+            errors.append({"method": exc.details.get("attempted_method"), "attempts": exc.details.get("attempts", [])})
+
+    raise GatewayDispatchError(
+        "Unable to dispatch task to OpenClaw Gateway RPC",
+        {
+            "attempted_transport": "http",
+            "attempted_method": method,
+            "fallbacks": errors,
         },
     )
 
 
 def _send_to_telegram(config: Dict[str, Any], text: str) -> Dict[str, Any]:
     telegram_url = f"https://api.telegram.org/bot{config['telegram_bot_token']}/sendMessage"
-    payload = {
-        "chat_id": config["telegram_chat_id"],
-        "text": f"[HA Voice Task] {text}",
-    }
-    response = requests.post(
-        telegram_url,
-        json=payload,
-        timeout=config["http_timeout_seconds"],
-    )
+    payload = {"chat_id": config["telegram_chat_id"], "text": f"[HA Voice Task] {text}"}
+
+    response = requests.post(telegram_url, json=payload, timeout=config["http_timeout_seconds"])
     data = _parse_json_response(response)
 
     if response.status_code != 200 or not data.get("ok"):
         description = data.get("description") or data.get("_raw_text") or "Unknown Telegram API error"
-        raise RuntimeError(
-            f"Telegram API error: status={response.status_code}, description={description}"
-        )
+        raise RuntimeError(f"Telegram API error: status={response.status_code}, description={description}")
 
     return data
 
@@ -253,7 +376,7 @@ def _dispatch_task(config: Dict[str, Any], text: str) -> Tuple[str, Dict[str, An
         return "telegram", _send_to_telegram(config, text)
 
     try:
-        return "gateway", _send_to_openclaw_gateway(config, text)
+        return "gateway_rpc", _send_to_openclaw_gateway_rpc(config, text)
     except Exception:
         if not config["telegram_forward"]:
             raise
@@ -274,89 +397,45 @@ def task() -> Any:
         return jsonify({"error": "configuration_error", "message": str(exc)}), 500
 
     if not _validate_ha_token(config["ha_shared_token"]):
-        return (
-            jsonify(
-                {
-                    "error": "unauthorized",
-                    "message": "Missing or invalid X-HA-Token header",
-                }
-            ),
-            401,
-        )
+        return jsonify({"error": "unauthorized", "message": "Missing or invalid X-HA-Token header"}), 401
 
     if not request.is_json:
-        return (
-            jsonify(
-                {
-                    "error": "invalid_request",
-                    "message": "Content-Type must be application/json",
-                }
-            ),
-            400,
-        )
+        return jsonify({"error": "invalid_request", "message": "Content-Type must be application/json"}), 400
 
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
-        return (
-            jsonify(
-                {
-                    "error": "invalid_request",
-                    "message": "Request body must be a JSON object",
-                }
-            ),
-            400,
-        )
+        return jsonify({"error": "invalid_request", "message": "Request body must be a JSON object"}), 400
 
     text = payload.get("text")
     if not isinstance(text, str) or not text.strip():
-        return (
-            jsonify(
-                {
-                    "error": "validation_error",
-                    "message": "JSON field 'text' is required and must be a non-empty string",
-                }
-            ),
-            400,
-        )
+        return jsonify({"error": "validation_error", "message": "JSON field 'text' is required and must be a non-empty string"}), 400
 
     normalized_text = text.strip()
 
     try:
         dispatch_mode, dispatch_result = _dispatch_task(config, normalized_text)
     except requests.RequestException as exc:
-        return (
-            jsonify(
-                {
-                    "error": "upstream_network_error",
-                    "message": f"Failed to reach upstream service: {exc}",
-                }
-            ),
-            502,
-        )
+        return jsonify({"error": "upstream_network_error", "message": f"Failed to reach upstream service: {exc}"}), 502
     except GatewayDispatchError as exc:
-        return (
-            jsonify(
-                {
-                    "error": "dispatch_error",
-                    "message": str(exc),
-                    **exc.details,
-                }
-            ),
-            502,
-        )
+        return jsonify({"error": "dispatch_error", "message": str(exc), **exc.details}), 502
     except Exception as exc:
         return jsonify({"error": "dispatch_error", "message": str(exc)}), 502
 
     response_payload: Dict[str, Any] = {
         "status": "sent",
         "mode": dispatch_mode,
+        "diagnostics": {
+            "deprecated_keys_used": config.get("deprecated_keys_used", {}),
+            "attempted_transport": dispatch_result.get("transport"),
+            "attempted_method": dispatch_result.get("method"),
+            "attempts": dispatch_result.get("attempts", []),
+        },
     }
 
-    if dispatch_mode == "gateway":
-        response_payload["message"] = "Task delivered to OpenClaw Gateway as inbound message"
-        response_payload["gateway_endpoint"] = dispatch_result.get("endpoint")
+    if dispatch_mode == "gateway_rpc":
+        response_payload["message"] = "Task delivered to OpenClaw Gateway RPC"
     elif dispatch_mode == "telegram_fallback":
-        response_payload["message"] = "Gateway dispatch failed, task forwarded to Telegram fallback"
+        response_payload["message"] = "Gateway RPC dispatch failed, task forwarded to Telegram fallback"
         response_payload["telegram_message_id"] = dispatch_result.get("result", {}).get("message_id")
     else:
         response_payload["message"] = "Task forwarded to Telegram"

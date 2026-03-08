@@ -1,8 +1,8 @@
-# EXAMPLE_HOME_ASSISTANT_AUTOMATION v2
-# Cíl: poslat text z HA do add-onu, který ho předá do OpenClaw Gateway (agent inbound)
+# EXAMPLE_HOME_ASSISTANT_AUTOMATION v3
+# Cíl: poslat text z HA do add-onu, který ho předá do OpenClaw Gateway RPC
 
 rest_command:
-  openclaw_task_v2:
+  openclaw_task_v3:
     url: "http://a0d7b954-openclaw_voice_task_bridge:8099/task"
     method: POST
     headers:
@@ -11,7 +11,7 @@ rest_command:
     payload: '{"text": "{{ text }}"}'
 
 automation:
-  - alias: "Pošli hlasový úkol do OpenClaw (v2 gateway)"
+  - alias: "Pošli hlasový úkol do OpenClaw (v3 gateway_rpc)"
     mode: single
     triggers:
       - trigger: state
@@ -20,6 +20,15 @@ automation:
       - condition: template
         value_template: "{{ states('input_text.openclaw_task_text') | trim != '' }}"
     actions:
-      - action: rest_command.openclaw_task_v2
+      - action: rest_command.openclaw_task_v3
         data:
           text: "{{ states('input_text.openclaw_task_text') }}"
+
+# Volitelný script pro rychlý ruční test
+script:
+  openclaw_test_task_v3:
+    alias: "OpenClaw test task v3"
+    sequence:
+      - action: rest_command.openclaw_task_v3
+        data:
+          text: "Astra, tohle je test z Home Assistantu přes gateway_rpc"

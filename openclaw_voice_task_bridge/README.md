@@ -1,114 +1,123 @@
-# Home Assistant OpenClaw Add-on v2
+# Home Assistant OpenClaw Add-on v3
 
-Tento add-on přijímá hlasový/textový úkol z Home Assistantu a **primárně ho posílá do OpenClaw Gateway jako skutečný inbound message pro agenta** (ne pouze Telegram `sendMessage`).
+Tento add-on přijímá hlasový/textový úkol z Home Assistantu a doručí ho **přímo do OpenClaw Gateway RPC** (primárně přes OpenResponses API), takže se úkol zpracuje agentem bez Telegram „okliky“.
 
-## Co umí
+## Co je nově ve v3
 
-- `POST /task` přijímá JSON `{ "text": "..." }`
-- **gateway mode (default):** odešle úkol přes HTTP na OpenClaw Gateway endpoint pro message dispatch
-- volitelný fallback: `telegram_forward: true` (když gateway selže)
-- alternativně `mode: telegram` (legacy chování)
-- `GET /health` vrací stav add-onu
-- volitelná ochrana přes hlavičku `X-HA-Token`
+- nový default režim: `mode: gateway_rpc`
+- nový dispatch klient s retry + timeout + diagnostikou
+- preferovaná metoda: `gateway_method: openresponses`
+- kompatibilní fallback: `mode: telegram` nebo `telegram_forward: true`
+- backward compatibility pro staré klíče `openclaw_*` (deprecated)
 
-## Režimy
+---
 
-### 1) `mode: gateway` (doporučeno, výchozí)
+## Přesné copy-paste nastavení pro Filipa
 
-Úkol jde do OpenClaw Gateway jako inbound zpráva => spustí se standardní agentní zpracování (session, routing, tools, odpověď přes kanál).
+> Vlož do konfigurace add-onu přesně toto (uprav jen URL/token/target):
 
-Nutné vyplnit:
+```yaml
+mode: gateway_rpc
+gateway_url: "http://host.docker.internal:18789"
+gateway_token: "<OPENCLAW_GATEWAY_TOKEN>"
+gateway_method: "openresponses"
+gateway_target: "telegram:5873857816"
+agent_id: "main"
+session_key: ""
+account_id: "default"
+channel: "telegram"
+debug_logging: true
+telegram_forward: false
+telegram_bot_token: ""
+telegram_chat_id: ""
+ha_shared_token: "<VOLITELNÝ_SDÍLENÝ_TOKEN>"
+listen_port: 8099
+http_timeout_seconds: 20
+dispatch_retries: 2
+retry_backoff_seconds: 1
+```
 
-- `openclaw_base_url` (např. `http://host.docker.internal:18789`)
-- `openclaw_to` (např. `telegram:5873857816`)
+---
 
-Volitelně:
+## Update only (co udělat po vydání)
 
-- `openclaw_token`
-- `openclaw_channel` (default `telegram`)
-- `openclaw_account_id` (default `default`)
-- `telegram_forward: true` + `telegram_*` pro fallback
+1. **HA → Settings → Add-ons → OpenClaw Voice Task Bridge → Update**
+2. Otevři záložku **Configuration**
+3. Nahraď config podle bloku výše (hlavně `mode`, `gateway_*`)
+4. Klikni **Save**
+5. Klikni **Restart** add-onu
+6. V záložce **Log** ověř start bez chyby
+7. V HA spusť test automation (nebo ručně zavolej `rest_command`)
 
-### 2) `mode: telegram`
+Hotovo. Žádný zásah do kódu není potřeba.
 
-Legacy fallback režim: odešle text přímo přes Telegram Bot API (`sendMessage`).
+---
 
-Nutné vyplnit:
+## Jak dispatch funguje
 
-- `telegram_bot_token`
-- `telegram_chat_id`
+### `gateway_method: openresponses` (doporučeno)
+- `POST /v1/responses`
+- běží stejnou agentní cestou jako OpenClaw agent run
+- při neúspěchu add-on zkusí fallback `chat_completions`
 
-## Konfigurace add-onu (options)
+### `gateway_method: chat_completions`
+- `POST /v1/chat/completions`
+- při neúspěchu add-on zkusí fallback `openresponses`
 
-- `mode`: `gateway` | `telegram` (default `gateway`)
-- `openclaw_base_url`: base URL OpenClaw Gateway HTTP API
-- `openclaw_token`: volitelný bearer token
-- `openclaw_to`: cíl zprávy (např. `telegram:5873857816`)
-- `openclaw_channel`: výchozí `telegram`
-- `openclaw_account_id`: výchozí `default`
-- `openclaw_dispatch_path`: cesta dispatch endpointu (výchozí `/message/send`)
-- `debug_logging`: zapne stručné diagnostické logy + fallback pokusy na známé cesty (výchozí `true`)
-- `telegram_forward`: volitelný fallback při selhání gateway dispatch
-- `telegram_bot_token`: Telegram bot token (pro telegram mode/fallback)
-- `telegram_chat_id`: cílový Telegram chat (pro telegram mode/fallback)
-- `ha_shared_token`: volitelný shared secret; pokud je vyplněn, endpoint `/task` vyžaduje `X-HA-Token`
-- `listen_port`: port HTTP služby (výchozí `8099`)
+### `gateway_method: tools_invoke_message`
+- `POST /tools/invoke` s tool `message.send`
+- kompatibilní metoda, ale není to plný agentní run endpoint
 
-## API
+---
 
-### GET /health
+## API add-onu
+
+### Health
 
 ```bash
 curl http://ADDON_HOST:8099/health
 ```
 
-Příklad odpovědi:
-
-```json
-{"status":"ok"}
-```
-
-### POST /task
+### Task
 
 ```bash
 curl -X POST http://ADDON_HOST:8099/task \
   -H "Content-Type: application/json" \
-  -H "X-HA-Token: YOUR_SHARED_TOKEN" \
+  -H "X-HA-Token: <VOLITELNÝ_TOKEN>" \
   -d '{"text":"Astra, připomeň mi zálohu serveru dnes večer"}'
 ```
 
-## Integrace do Home Assistant
+Úspěšná odpověď obsahuje i diagnostiku (`attempted_transport`, `attempted_method`, `attempts`).
 
-Viz `EXAMPLE_HOME_ASSISTANT_AUTOMATION.yaml` (v2 příklad pro `rest_command` + automatizaci).
+---
 
-## Diagnostika
+## Troubleshooting
 
-Pokud je `debug_logging: true`, add-on loguje do stdout stručně:
+| Chyba / symptom | Pravděpodobná příčina | Fix |
+|---|---|---|
+| `configuration_error: GATEWAY_URL is required` | Chybí `gateway_url` | Vyplň `gateway_url` v configu |
+| `dispatch_error` + 401 | Špatný nebo chybějící `gateway_token` | Nastav správný token z OpenClaw Gateway |
+| `dispatch_error` + 404 na `/v1/responses` | Endpoint není povolený v gateway configu | Povolit `gateway.http.endpoints.responses.enabled=true` nebo přepnout `gateway_method` |
+| `dispatch_error` + 404 na `/v1/chat/completions` | Endpoint není povolený | Povolit `gateway.http.endpoints.chatCompletions.enabled=true` |
+| Add-on vrací 401 na `/task` | Špatný `X-HA-Token` | Sjednotit `ha_shared_token` v add-onu a hlavičku v HA |
+| Odesílá se Telegram fallback | Selhává gateway dispatch a `telegram_forward=true` | Oprav gateway URL/token/metodu, fallback nech jen jako pojistku |
+| Nic se neposílá | `mode=telegram` bez telegram klíčů | Přepni na `mode=gateway_rpc` nebo doplň telegram config |
 
-- zvolený `openclaw_base_url`
-- zvolený `openclaw_dispatch_path`
-- finální URL každého pokusu
-- HTTP status code (nebo `network_error`)
+---
 
-Při chybě dispatch vrací JSON navíc se strukturovanými poli:
+## Deprecated klíče (stále fungují)
 
-- `attempted_urls`: seznam URL, které byly zkuseny
-- `attempts`: detail každého pokusu (`status`, zkrácené `body`, případně `error`)
-- `auth_used`: zda byl použit Bearer token
+Tyto klíče jsou podporované kvůli kompatibilitě, ale používej nové:
 
-Fallback pokusy na známé cesty (`/api/v1/message/send`, `/v1/message/send`, `/message/send`) se provádí **jen když selže explicitní `openclaw_dispatch_path` a zároveň je zapnuté `debug_logging`**.
+- `openclaw_base_url` → `gateway_url`
+- `openclaw_token` → `gateway_token`
+- `openclaw_to` → `gateway_target`
+- `openclaw_channel` → `channel`
+- `openclaw_account_id` → `account_id`
+- `mode: gateway` → `mode: gateway_rpc`
 
-### Doporučená minimální konfigurace pro Filipa
+---
 
-```yaml
-mode: gateway
-openclaw_base_url: "http://<VEŘEJNÁ_IP_NEBO_DNS>:18789"
-openclaw_token: "<OPENCLAW_TOKEN>"
-openclaw_to: "telegram:5873857816"
-openclaw_dispatch_path: "/message/send"
-debug_logging: true
-```
+## Home Assistant příklad
 
-## Poznámka
-
-Implementace používá pouze **HTTP volání** na Gateway endpoint (bez websocketu), aby byla realisticky použitelná z add-on kontejneru.
+Viz `EXAMPLE_HOME_ASSISTANT_AUTOMATION.yaml`.
