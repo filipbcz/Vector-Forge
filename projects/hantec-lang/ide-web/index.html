@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hantec IDE v0.1</title>
+  <title>Hantec IDE v0.3</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 0; background:#111; color:#eee; }
     .wrap { display:grid; grid-template-columns: 1fr 1fr; height:100vh; }
@@ -16,10 +16,14 @@
 </head>
 <body>
   <div class="wrap">
-    <textarea id="src"># Hantec v0.2 demo
+    <textarea id="src"># Hantec v0.3 demo
 rekni Nazdar z Hantecu!
-dej x = 21 + 21
-spocitej x</textarea>
+dej x = 3
+opakuj 3
+  kdyz x > 0
+    spocitej x
+  konec
+konec</textarea>
     <div class="right">
       <button id="runBtn">Run</button>
       <pre id="out">Klikni Run...</pre>

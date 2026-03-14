@@ -13,11 +13,11 @@
 - [x] Error locations (line/column)
 - [x] CLI command: `hantec run file.hantec`
 
-## v0.3
-- Control flow (`kdyz`, `opakuj`)
-- Functions
-- Standard library basics
-- Web IDE syntax highlighting
+## v0.3 🚧
+- [x] Control flow (`kdyz`, `opakuj`, `konec`)
+- [ ] Functions
+- [ ] Standard library basics
+- [ ] Web IDE syntax highlighting
 
 ## v0.5
 - Bytecode prototype + VM runner
