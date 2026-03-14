@@ -7,11 +7,11 @@
 - Minimal web IDE with compile+run panel
 - Bytecode backend placeholder
 
-## v0.2
-- Variables (`dej x = ...`)
-- Better parser (tokenizer + AST)
-- Error locations (line/column)
-- CLI command: `hantec run file.hantec`
+## v0.2 ✅
+- [x] Variables (`dej x = ...`)
+- [x] Better parser (line-based AST parser)
+- [x] Error locations (line/column)
+- [x] CLI command: `hantec run file.hantec`
 
 ## v0.3
 - Control flow (`kdyz`, `opakuj`)

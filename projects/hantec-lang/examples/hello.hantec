@@ -1,3 +1,4 @@
-# minimal v0.1 Hantec demo
-rekni Nazdar světe!
-spocitej 2 + 3 * 10
+# Hantec v0.2 demo
+rekni Nazdar z Hantecu!
+dej x = 21 + 21
+spocitej x
