@@ -1,5 +1,19 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.final re-validation pass (C branch, autonomy cron)
+
+- Dodržen C-first scope (bez nových JS/VM feature změn); proveden pouze stabilizační gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:rc -- examples/hello.mulda`
+  - `npm run audit:reproducibility`
+- Výsledek gate: PASS.
+- Nový bundle z tohoto běhu: `release/bundles/rc-1.0.0-rc.final-20260315T204306Z`.
+- Sentinel gate: maintainability OK — release/test flow je konzistentní, bez regresí v C compile orchestration.
+- Hydra gate: security posture OK — žádné nové privilegované operace ani externí integrace; pouze lokální build/release audit.
+
 ## 2026-03-15 — v1.0.0-rc.final final gate pass + release bundle (C branch)
 
 - Verze package byla zvýšena na `1.0.0-rc.final`.
