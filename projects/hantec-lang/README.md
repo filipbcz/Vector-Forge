@@ -102,6 +102,12 @@ Při `--target c --platform ...` se po úspěšném překladu binárky vytvoří
 
 Pokud některý compiler chybí, build vrátí `[TOOLCHAIN_MISSING]` a doporučený instalační příkaz.
 
+## Upgrade / migration
+
+- v0.9.x -> v1.0.0-rc.2: `docs/MIGRATION_0.9_to_1.0-rc.md`
+- RC audit checklist: `docs/RC_CHECKLIST.md`
+- Publishing flow: `docs/PUBLISHING.md`
+
 ## Security note
 
 VM i JS backend aktuálně vyhodnocují výrazy přes JavaScript evaluaci (`new Function`).

@@ -133,6 +133,14 @@
 - Sentinel gate (RC): release skript je deterministický, fail-fast na chybějící artefakty/toolchain a generuje checksum inventory.
 - Hydra gate (RC): install skripty nekonfigurují systém globálně mimo zvolený target; známé riziko je trust model runtime (spouštět trusted Mulda input).
 
+## 2026-03-15 — v1.0.0-rc.2 migration docs completed
+
+- Přidán dedikovaný migration dokument `docs/MIGRATION_0.9_to_1.0-rc.md` pro upgrade z v0.9.x na v1.0.0-rc.2.
+- README doplněno o explicitní odkazy na migration/checklist/publishing dokumentaci.
+- Roadmap DoD pro v1.0-rc nyní odkazuje na konkrétní migration soubor (auditovatelný artefakt).
+- Sentinel gate (docs): změna je nízkoriziková, zvyšuje release maintainability (jasný postup upgradu + CI doporučení).
+- Hydra gate (docs): bez nové attack surface; dokument explicitně připomíná trusted-input model a fail-fast toolchain gating.
+
 ## 2026-03-15 — v1.0.0-rc.2 debugger parity hardening (C branch)
 
 - C backend trace detail byl změněn z formátového placeholderu na skutečné hodnoty (`DECLARE`/`ASSIGN` -> `x=2`, `x=5`).
