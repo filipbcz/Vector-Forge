@@ -1,6 +1,6 @@
 {
   "name": "mulda-lang",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.final",
   "private": true,
   "description": "Scaffold for Mulda language + web IDE",
   "bin": {

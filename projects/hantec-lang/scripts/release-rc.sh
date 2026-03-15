@@ -4,8 +4,20 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-VERSION="${1:-$(node -p "require('./package.json').version")}" 
-SOURCE_FILE="${2:-examples/hello.mulda}"
+DEFAULT_VERSION="$(node -p "require('./package.json').version")"
+VERSION="$DEFAULT_VERSION"
+SOURCE_FILE="examples/hello.mulda"
+
+if [[ $# -ge 1 ]]; then
+  if [[ "$1" == *.mulda ]]; then
+    SOURCE_FILE="$1"
+  else
+    VERSION="$1"
+    if [[ $# -ge 2 ]]; then
+      SOURCE_FILE="$2"
+    fi
+  fi
+fi
 BASE_NAME="$(basename "$SOURCE_FILE" .mulda)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BUNDLE_DIR="release/bundles/rc-${VERSION}-${STAMP}"

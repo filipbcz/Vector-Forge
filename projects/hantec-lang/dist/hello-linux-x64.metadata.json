@@ -1,10 +1,10 @@
 {
   "lang": "mulda",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.final",
   "backend": "c",
   "platform": "linux-x64",
   "compiler": "gcc",
-  "generatedAt": "2026-03-15T20:23:59.966Z",
+  "generatedAt": "2026-03-15T20:35:56.398Z",
   "sourceFile": "/home/ubuntu/vector-forge/projects/hantec-lang/examples/hello.mulda",
   "cFile": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello.c",
   "artifactFile": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-linux-x64"

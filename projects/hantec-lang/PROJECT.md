@@ -16,7 +16,7 @@ JS backend zůstává zachován jako **dev/debug path**.
 - Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `1.0.0-rc.2` (release candidate)
+- Verze: `1.0.0-rc.final` (final release candidate)
 - IDE má moderní debug UI základy (toolbar + breakpoints + stack/variables panely)
 - Parser primárně podporuje `dyz` + `funkcicka`
 - Variables panel sleduje deklarace i assignment snapshoty (`DECLARE` + `ASSIGN`)
@@ -40,7 +40,7 @@ JS backend zůstává zachován jako **dev/debug path**.
 - CI ověřuje kompilaci obou targetů.
 - Artefakty mají konzistentní verzi a naming.
 
-### v1.0-rc — Release candidate
+### v1.0.0-rc.final — Final release candidate
 **DoD:**
 - Stabilita bez blocker bugů pro deklarovaný scope.
 - Installer/release artifact pro Linux/Windows.

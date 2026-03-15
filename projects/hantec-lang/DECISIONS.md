@@ -1,5 +1,22 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — v1.0.0-rc.final final gate pass + release bundle (C branch)
+
+- Verze package byla zvýšena na `1.0.0-rc.final`.
+- Opraven `scripts/release-rc.sh` argument contract: `npm run release:rc -- examples/hello.mulda` nyní správně bere první argument jako source file (pokud je `.mulda`) místo chybného přepsání verze.
+- Proveden kompletní final RC gate suite:
+  - `npm test`
+  - `npm run check:installers`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run release:rc -- examples/hello.mulda`
+  - `npm run audit:reproducibility`
+- Vytvořeny finální RC bundly s aktualizovanými manifesty/checksumy pro `1.0.0-rc.final`:
+  - `release/bundles/rc-1.0.0-rc.final-20260315T203541Z`
+  - `release/bundles/rc-1.0.0-rc.final-20260315T203551Z` (latest)
+- Dokumentace byla sladěna na RC.final (`docs/RC_CHECKLIST.md`, `docs/ROADMAP.md`, `PROJECT.md`, `README.md`) + přidány release notes (`docs/RELEASE_NOTES_RC_FINAL.md`).
+- Sentinel gate (rc.final): maintainability OK — release flow je konzistentní, argument contract release skriptu je jednoznačný a gate/reporting dokumentace je auditovatelná.
+- Hydra gate (rc.final): security posture OK — bez nových privilegovaných operací či síťových integrací; změny jsou release/process/documentation hardening.
+
 ## 2026-03-15 — RC.5 release-copy sync + full gate re-validation (C branch)
 
 - Release runtime copies byly dorovnány na aktuální C compile orchestrator (`runtime/src/mulda.js` -> `release/linux/runtime/src/mulda.js`, `release/windows/runtime/src/mulda.js`), aby installer payload neobsahoval stale variantu bez `getCCompileArgs(...)` hardeningu.

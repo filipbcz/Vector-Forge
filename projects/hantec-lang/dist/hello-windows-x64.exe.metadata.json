@@ -1,10 +1,10 @@
 {
   "lang": "mulda",
-  "version": "1.0.0-rc.5",
+  "version": "1.0.0-rc.final",
   "backend": "c",
   "platform": "windows-x64",
   "compiler": "x86_64-w64-mingw32-gcc",
-  "generatedAt": "2026-03-15T20:24:01.578Z",
+  "generatedAt": "2026-03-15T20:35:56.693Z",
   "sourceFile": "/home/ubuntu/vector-forge/projects/hantec-lang/examples/hello.mulda",
   "cFile": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello.c",
   "artifactFile": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-windows-x64.exe"

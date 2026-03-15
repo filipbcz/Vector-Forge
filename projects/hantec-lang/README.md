@@ -20,7 +20,7 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.9.0 (finalized)
+## Co je ve v1.0.0-rc.final
 
 - Modernizované web IDE (single-page layout):
   - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
@@ -133,7 +133,7 @@ npm run verify:release
 
 ## Upgrade / migration
 
-- v0.9.x -> v1.0.0-rc.2: `docs/MIGRATION_0.9_to_1.0-rc.md`
+- v0.9.x -> v1.0.0-rc.final: `docs/MIGRATION_0.9_to_1.0-rc.md`
 - RC audit checklist: `docs/RC_CHECKLIST.md`
 - Publishing flow: `docs/PUBLISHING.md`
 
