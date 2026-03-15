@@ -8,6 +8,6 @@ Experimentální jazyk (Mulda/Hantec) + web IDE pro rychlé iterace syntaxe a ru
 - Každý běh: návrh → implementace → test/re-test → review (Sentinel/Hydra) → commit/push
 
 ## Stav
-- Verze: `0.4.0`
+- Verze: `0.4.1`
 - Dodáno: základní řízení toku (`kdyz`, `opakuj`, `konec`) + funkce (`funkce`, `vrat`, `konec`)
-- Otevřené body po v0.4: stdlib základy, zvýraznění syntaxe v IDE
+- Otevřené body po v0.4.1: stdlib základy

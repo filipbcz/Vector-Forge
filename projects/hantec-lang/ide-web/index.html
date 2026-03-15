@@ -3,20 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hantec IDE v0.4</title>
+  <title>Hantec IDE v0.4.1</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; background:#111; color:#eee; }
+    :root {
+      --bg: #111;
+      --panel: #1a1a1a;
+      --output: #090909;
+      --text: #e8e8e8;
+      --muted: #8a8a8a;
+      --kw: #ff7ab6;
+      --num: #79c0ff;
+      --ident: #c9d1d9;
+      --comment: #6a9955;
+      --caret: #b8f;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; background: var(--bg); color: var(--text); }
     .wrap { display:grid; grid-template-columns: 1fr 1fr; height:100vh; }
-    textarea, pre { width:100%; height:100%; box-sizing:border-box; border:0; padding:16px; }
-    textarea { background:#1a1a1a; color:#b8f; resize:none; }
+
+    .editor-wrap {
+      position: relative;
+      height: 100%;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .editor-layer {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      border: 0;
+      padding: 16px;
+      font: inherit;
+      line-height: 1.45;
+      white-space: pre;
+      overflow: auto;
+      tab-size: 2;
+    }
+
+    #highlight {
+      color: var(--ident);
+      pointer-events: none;
+    }
+
+    #src {
+      background: transparent;
+      color: transparent;
+      caret-color: var(--caret);
+      resize: none;
+      outline: none;
+    }
+
+    #highlight .kw { color: var(--kw); font-weight: 600; }
+    #highlight .num { color: var(--num); }
+    #highlight .comment { color: var(--comment); font-style: italic; }
+
     .right { display:flex; flex-direction:column; }
-    button { padding:10px 14px; margin:10px; width:120px; }
-    pre { margin:0; background:#090909; color:#9f9; overflow:auto; }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 10px; }
+    button { padding: 10px 14px; width: 120px; font-weight: 700; }
+    .legend { color: var(--muted); font-size: 12px; }
+    pre#out {
+      margin: 0;
+      padding: 16px;
+      background: var(--output);
+      color: #9f9;
+      flex: 1;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <textarea id="src"># Hantec v0.4 demo
+    <div class="editor-wrap">
+      <pre id="highlight" class="editor-layer" aria-hidden="true"></pre>
+      <textarea id="src" class="editor-layer" spellcheck="false"># Hantec v0.4.1 demo
 rekni Nazdar z Hantecu!
 dej x = 3
 opakuj 3
@@ -24,15 +87,70 @@ opakuj 3
     spocitej x
   konec
 konec</textarea>
+    </div>
+
     <div class="right">
-      <button id="runBtn">Run</button>
+      <div class="toolbar">
+        <button id="runBtn">Run</button>
+        <span class="legend">Highlight: keywords / numbers / comments</span>
+      </div>
       <pre id="out">Klikni Run...</pre>
     </div>
   </div>
+
   <script>
+    const KEYWORDS = ['dej', 'rekni', 'spocitej', 'kdyz', 'opakuj', 'konec', 'funkce', 'vrat'];
+    const KEYWORD_RE = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'g');
+
     const runBtn = document.getElementById('runBtn');
     const src = document.getElementById('src');
     const out = document.getElementById('out');
+    const highlight = document.getElementById('highlight');
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    }
+
+    function highlightLine(line) {
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith('#')) {
+        return `<span class="comment">${escapeHtml(line)}</span>`;
+      }
+
+      const escaped = escapeHtml(line)
+        .replace(KEYWORD_RE, '<span class="kw">$1</span>')
+        .replace(/\b\d+(?:\.\d+)?\b/g, '<span class="num">$&</span>');
+
+      return escaped;
+    }
+
+    function renderHighlight() {
+      highlight.innerHTML = src.value
+        .split('\n')
+        .map(highlightLine)
+        .join('\n');
+    }
+
+    function syncScroll() {
+      highlight.scrollTop = src.scrollTop;
+      highlight.scrollLeft = src.scrollLeft;
+    }
+
+    src.addEventListener('input', renderHighlight);
+    src.addEventListener('scroll', syncScroll);
+    src.addEventListener('keydown', (event) => {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const start = src.selectionStart;
+        const end = src.selectionEnd;
+        src.value = `${src.value.slice(0, start)}  ${src.value.slice(end)}`;
+        src.selectionStart = src.selectionEnd = start + 2;
+        renderHighlight();
+      }
+    });
 
     runBtn.addEventListener('click', async () => {
       out.textContent = 'Running...';
@@ -44,6 +162,8 @@ konec</textarea>
       const data = await res.json();
       out.textContent = data.output ?? data.error;
     });
+
+    renderHighlight();
   </script>
 </body>
 </html>

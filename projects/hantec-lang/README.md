@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.4 (aktuální)
+## Co je ve v0.4.1 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -14,7 +14,7 @@ Experimentální jazyk **Hantec** + web IDE.
 - Návratová hodnota přes `vrat <expr>` uvnitř `funkce`
 - Chybové hlášky ze transpileru obsahují `line/col`
 - CLI příkaz `hantec run file.hantec`
-- Minimal web IDE (compile + run)
+- Web IDE (compile + run) + základní syntax highlighting (keywords/čísla/komentáře)
 
 ## Struktura
 

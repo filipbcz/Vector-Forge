@@ -17,7 +17,7 @@
 - [x] Control flow (`kdyz`, `opakuj`, `konec`)
 - [x] Functions
 - [ ] Standard library basics
-- [ ] Web IDE syntax highlighting
+- [x] Web IDE syntax highlighting
 
 ## v0.5
 - Bytecode prototype + VM runner
