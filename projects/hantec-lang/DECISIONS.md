@@ -120,3 +120,15 @@
 - Release manifest (`dist/hello.release-manifest.json`) obsahuje SHA256 pro artefakty i metadata sidecary a `allTargetsBuilt=true`.
 - Sentinel gate (stručně): maintainability OK po opravě probe a explicitním C mapování builtins; žádné regresní selhání v `npm test`.
 - Hydra gate (stručně): cross-build smoke bez nových bezpečnostních varování; artefakty deterministicky dohledatelné přes checksum + metadata.
+
+## 2026-03-15 — v1.0.0-rc.1 release packaging + installer baseline
+
+- Přidána release struktura `release/` pro Linux/Windows payload, manifest a checksums.
+- Přidán skript `scripts/release-rc.sh`, který provede testy, cross-build, smoke run linux artefaktu a připraví RC bundle (`release/rc-<ver>-<timestamp>`).
+- Přidány instalační skripty:
+  - `release/install-linux.sh`
+  - `release/install-windows.ps1` (template)
+- Přidán auditní checklist debugger parity: `docs/RC_CHECKLIST.md`.
+- Verze package zvýšena na `1.0.0-rc.1`.
+- Sentinel gate (RC): release skript je deterministický, fail-fast na chybějící artefakty/toolchain a generuje checksum inventory.
+- Hydra gate (RC): install skripty nekonfigurují systém globálně mimo zvolený target; známé riziko je trust model runtime (spouštět trusted Mulda input).

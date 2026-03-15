@@ -16,7 +16,7 @@ JS backend zůstává zachován jako **dev/debug path**.
 - Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `0.9.0` (finalized)
+- Verze: `1.0.0-rc.1` (release candidate)
 - IDE má moderní debug UI základy (toolbar + breakpoints + stack/variables panely)
 - Parser primárně podporuje `dyz` + `funkcicka`
 - Variables panel sleduje deklarace i assignment snapshoty (`DECLARE` + `ASSIGN`)

@@ -284,7 +284,7 @@ function testCrossBuildManifestScript() {
   assert.strictEqual(fs.existsSync(manifestPath), true);
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert.strictEqual(manifest.lang, 'mulda');
-  assert.strictEqual(manifest.version, '0.9.0');
+  assert.strictEqual(manifest.version, '1.0.0-rc.1');
   assert(manifest.platforms['linux-x64']);
   assert(manifest.platforms['windows-x64']);
   assert(['ok', 'failed'].includes(manifest.platforms['linux-x64'].status));
