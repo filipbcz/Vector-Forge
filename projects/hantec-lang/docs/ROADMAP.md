@@ -25,7 +25,7 @@ Cíl: standardizovat build pipeline pro nativní výstupy na Linux a Windows.
 - Artefakty buildů jsou verzované a dohledatelné (naming + metadata).
 - Dokumentace má stručný cross-compile návod včetně závislostí.
 
-**Status v0.9:** ✅ Implementováno (sjednocený cross-build command, CI workflow, artifact manifest+checksums).
+**Status v0.9:** ✅ Finalized (sjednocený cross-build command, CI workflow, artifact manifest+checksums, host smoke ověření linux/windows artefaktů).
 
 ## v1.0-rc — Release candidate
 Cíl: stabilní kandidát na 1.0 s produkčně použitelným toolchainem.

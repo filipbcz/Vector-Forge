@@ -20,7 +20,7 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.9.0
+## Co je ve v0.9.0 (finalized)
 
 - Modernizované web IDE (single-page layout):
   - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
@@ -44,6 +44,7 @@ Experimentální jazyk **Mulda** + web IDE.
   - z jednoho `.mulda` zdroje vyrobí Linux (`gcc`) i Windows (`mingw-w64`) artefakt
   - vygeneruje release manifest s checksums a platform mapou (`dist/<name>.release-manifest.json`)
   - při chybějícím toolchainu vrací jasný status `[TOOLCHAIN_MISSING]` + instalační doporučení
+- v0.9 finalize checkpoint (host verification): `examples/hello.mulda` byl reálně cross-buildnut pro `linux-x64` + `windows-x64.exe`, Linux artefakt byl spuštěn a Windows artefakt ověřen přes `file` + SHA256 + velikost.
 
 ## Quickstart
 

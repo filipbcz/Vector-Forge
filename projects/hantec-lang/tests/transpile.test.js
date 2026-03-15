@@ -296,7 +296,7 @@ function testCrossBuildManifestScript() {
 
 function testCE2EWhenGccAvailable() {
   const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
-  if ((gcc.status || 1) !== 0) {
+  if (gcc.status !== 0) {
     console.log('skip c e2e (gcc unavailable)');
     return;
   }

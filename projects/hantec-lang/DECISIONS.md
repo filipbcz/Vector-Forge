@@ -109,3 +109,14 @@
   - SHA256 checksumy artefaktů a metadata sidecar souborů
 - Přidán GitHub Actions workflow (`.github/workflows/mulda-c-cross.yml`) pro Linux runner + MinGW cross-compile a upload C artefaktů.
 - Verze projektu zvýšena na `0.9.0`.
+
+## 2026-03-15 — v0.9 finalized: host cross-build verification + gates
+
+- Reálný cross-build z `examples/hello.mulda` ověřen na hostu pro oba targety:
+  - `linux-x64` (`gcc`)
+  - `windows-x64.exe` (`x86_64-w64-mingw32-gcc`)
+- Opraven probe bug dostupnosti toolchainu (`spawnSync(...).status`), který falešně hlásil chybějící compiler i při `status=0`.
+- C backend doplněn o mapování stdlib callů `minimum/maximum/obsahuje` na C helpery, aby referenční hello fixture šla skutečně linknout pro Linux i Windows.
+- Release manifest (`dist/hello.release-manifest.json`) obsahuje SHA256 pro artefakty i metadata sidecary a `allTargetsBuilt=true`.
+- Sentinel gate (stručně): maintainability OK po opravě probe a explicitním C mapování builtins; žádné regresní selhání v `npm test`.
+- Hydra gate (stručně): cross-build smoke bez nových bezpečnostních varování; artefakty deterministicky dohledatelné přes checksum + metadata.
