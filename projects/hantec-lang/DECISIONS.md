@@ -22,3 +22,11 @@
 - Přidána synchronizace scrollu mezi vrstvami a handling `Tab` pro odsazení dvěma mezerami.
 - Důvod: dokončit zbývající bod roadmapy v0.3 s minimální složitostí a bez zavádění editor frameworku.
 - Dopad: IDE je čitelnější při psaní delších skriptů; runtime/kompilátor zůstaly beze změn.
+
+## 2026-03-15 — v0.4.2 stdlib základy (MVP)
+- Do generovaného JS byl přidán stdlib prelude se třemi funkcemi: `delka(value)`, `cislo(value)`, `text(value)`.
+- Implementace je záměrně malá a zero-dependency: helpery jsou emitované přímo transpilerem, bez změny runtime vrstvy.
+- `cislo` validuje převod pomocí `Number.isNaN` a vyhazuje explicitní chybu pro nečíselné vstupy.
+- Marker transpileru/bytecode placeholderu byl posunut na `v0.4.2`.
+- Důvod: uzavřít „Standard library basics“ bod roadmapy konzistentně s dosavadní architekturou (line-based parser + JS backend).
+- Dopad: skripty mohou používat základní utility bez ručního psaní helper funkcí v každém programu.

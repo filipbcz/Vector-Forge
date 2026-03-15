@@ -13,10 +13,10 @@
 - [x] Error locations (line/column)
 - [x] CLI command: `hantec run file.hantec`
 
-## v0.3 🚧
+## v0.3 ✅
 - [x] Control flow (`kdyz`, `opakuj`, `konec`)
 - [x] Functions
-- [ ] Standard library basics
+- [x] Standard library basics (MVP: `delka`, `cislo`, `text`)
 - [x] Web IDE syntax highlighting
 
 ## v0.5
