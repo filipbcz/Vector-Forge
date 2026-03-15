@@ -1,5 +1,13 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.2 stability re-validation + release bundle refresh (C-first branch)
+
+- Proveden stabilizační běh bez rozšiřování JS/VM feature scope: `npm test`, `npm run build:c:cross -- examples/hello.mulda`, `npm run pack:check`, `npm run release:rc`.
+- Cross-build Linux/Windows i release smoke run zůstávají zelené; vytvořen nový bundle `release/bundles/rc-1.0.0-rc.2-20260315T194315Z`.
+- Obnoveny auditní artefakty (`dist/*.metadata.json`, `dist/*.release-manifest.json`, `release/manifest*.json`, `release/checksums.sha256`, linux/windows payload binárky + compiler copy) tak, aby odpovídaly aktuálnímu RC stavu.
+- Sentinel gate: maintainability OK — změna je čistý stability/release refresh, bez zásahu do parser/runtime API nebo roadmap scope.
+- Hydra gate: security posture OK — žádná nová privilegia, síťové integrace ani attack-surface změna; pouze rebuild + integrity metadata/checksums.
+
 ## 2026-03-15 — RC.2 artifact refresh: bool print parity in committed dist outputs
 
 - Spuštěn stabilizační cyklus čistě na C větvi (bez nových JS/VM feature změn): `npm test` + `npm run build:c:cross -- examples/hello.mulda`.
