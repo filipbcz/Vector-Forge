@@ -10,6 +10,11 @@ function die(message) {
   process.exit(1);
 }
 
+function extractTimestampStamp(bundleName) {
+  const match = bundleName.match(/(\d{8}T\d{6}Z)$/);
+  return match ? match[1] : null;
+}
+
 function listBundles(version, channel) {
   if (!fs.existsSync(bundlesRoot)) return [];
   const prefix = `${channel}-${version}-`;
@@ -18,9 +23,15 @@ function listBundles(version, channel) {
     .map((name) => ({
       name,
       stamp: name.slice(prefix.length),
+      timestamp: extractTimestampStamp(name),
       dir: path.join(bundlesRoot, name)
     }))
-    .sort((a, b) => a.stamp.localeCompare(b.stamp));
+    .sort((a, b) => {
+      if (a.timestamp && b.timestamp && a.timestamp !== b.timestamp) {
+        return a.timestamp.localeCompare(b.timestamp);
+      }
+      return a.name.localeCompare(b.name);
+    });
 }
 
 function parseChecksums(filePath) {

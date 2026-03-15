@@ -1,5 +1,16 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — reproducibility audit ordering fix for mixed RC tags (C/release stability)
+
+- Pro RC stability běhy s GA verzí (`1.0.0`) byl reproducibility audit náchylný porovnávat starší `rc-1.0.0-rc.*` bundly místo nejnovějších `rc-1.0.0-<timestamp>` běhů, protože řadil lexikograficky celý suffix.
+- `scripts/audit-release-reproducibility.js` nově extrahuje timestamp suffix (`YYYYMMDDTHHMMSSZ`) z názvu bundle a řadí primárně podle něj; fallback je lexikografické řazení jména.
+- Přidány explicitní npm skripty pro channel-aware audit:
+  - `npm run audit:reproducibility:rc`
+  - `npm run audit:reproducibility:ga`
+- Forge gate: `npm test` PASS, `npm run release:rc -- examples/hello.mulda` PASS, `npm run audit:reproducibility:rc` PASS, `npm run audit:reproducibility:ga` PASS.
+- Sentinel gate: maintainability OK — fix je lokalizovaný v audit utility, bez zásahu do compiler/runtime semantics.
+- Hydra gate: security posture OK — žádná nová privilegia ani externí integrace; změna pouze zpřesňuje lokální audit výběr bundle pair.
+
 ## 2026-03-15 — v1.0.0 GA cut (C branch, release freeze)
 
 - Release freeze potvrzen: žádné nové feature, pouze release governance + clean artifact policy.

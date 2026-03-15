@@ -27,6 +27,8 @@
     "test": "node tests/transpile.test.js && node tests/fixtures.test.js && node tests/ai-hint.test.js",
     "check:installers": "node scripts/check-installers.js",
     "audit:reproducibility": "node scripts/audit-release-reproducibility.js",
+    "audit:reproducibility:rc": "node scripts/audit-release-reproducibility.js $(node -p \"require('./package.json').version\") rc",
+    "audit:reproducibility:ga": "node scripts/audit-release-reproducibility.js $(node -p \"require('./package.json').version\") ga",
     "pack:check": "npm pack --dry-run --json > .pack-dry-run.json && node scripts/check-packaging.js .pack-dry-run.json",
     "prepublishOnly": "npm test && npm run pack:check",
     "mulda": "node runtime/src/mulda.js",
