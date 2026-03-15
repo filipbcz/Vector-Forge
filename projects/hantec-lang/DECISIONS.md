@@ -1,5 +1,22 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — GA stability re-validation pass (C branch, autonomy cron)
+
+- Dodržen C-first scope (bez nových JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T212303Z`
+  - `release/bundles/ga-1.0.0-20260315T212309Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je nadále veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow je konzistentní a auditovatelný, bez změn compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+
 ## 2026-03-15 — RC reproducibility audit hardening: exact bundle-name match for stable version tags (C/release stability)
 
 - Incident: `npm run audit:reproducibility:rc` pro verzi `1.0.0` failoval na `bundle version mismatch`, protože výběr bundle pair používal `startsWith("rc-1.0.0-")` a omylem zahrnul i historické `rc-1.0.0-rc.*-<timestamp>` adresáře.
