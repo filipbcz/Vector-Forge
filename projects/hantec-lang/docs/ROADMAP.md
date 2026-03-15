@@ -1,47 +1,40 @@
 # Mulda Language Roadmap
 
-## v0.7.0 ✅ IDE debug UX foundations
-- [x] Modernized single-page IDE layout (editor + debugger side panels + top toolbar)
-- [x] Dark theme with runtime/debug status indicators
-- [x] Syntax highlighting update for approved Mulda keywords (`dyz`, `funkcicka`, ...)
-- [x] Block pairing visualization for `Hokna/dyz/opakuj/funkcicka` with unmatched `konec` warnings
-- [x] Breakpoint toggles in editor gutter (in-memory per session)
-- [x] Trace-based step controls (Run/Pause/Step/Continue MVP)
-- [x] Stack trace timeline panel from `--trace-json` events
-- [x] Variables/watch MVP panel with event-detail fallback
-- [x] Parser now supports approved `dyz` + `funkcicka` while keeping `kdyz` + `funkce` as deprecated aliases
+## Aktuální stav
+- Stabilní verze: **v0.7.3**
+- Směr: **Pascal-first syntax**, primární runtime/backend: **C**
+- JS backend zůstává zachovaný jako **dev/debug path** (rychlé iterace, trace, IDE experimenty)
 
-## v0.6 ✅ Mulda spec alignment
-- [x] `.mulda` source format
-- [x] `Hokna` start keyword
-- [x] `vyblij` print keyword
-- [x] bool syntax (`joNeboHovno`, `jo/hovno`, `aKurva/bo/nechcu`)
-- [x] CLI naming (`mulda`, `muldac`, `muldarun`)
-- [x] IDE demo + syntax highlight update
-- [x] fixtures/tests/docs renamed from Hantec to Mulda
+## v0.8 — C backend generator (MVP)
+Cíl: generovat validní C kód z Mulda AST a spustit ho přes gcc.
 
-## v0.6.1 ✅ Trace parity
-- [x] Structured trace output i pro JS backend
-- [x] `--trace-json` pro JS i bytecode backend
+**Definition of Done (DoD):**
+- `muldac --target c` generuje přeložitelný `.c` výstup pro core subset jazyka.
+- MVP pokrývá minimálně: `Hokna`, deklarace proměnných, assignment, `vyblij`, `dyz`, `opakuj`, základní funkce/return.
+- Runtime trace parity na základní úrovni (min. `DECLARE`, `ASSIGN`, `PRINT`, `IF`, `RETURN`) dostupná i pro C cestu.
+- E2E testy projdou na Linuxu přes gcc (CI/local) a porovnají výstup s očekáváním.
+- Dokumentace obsahuje workflow „Mulda -> C -> binárka“.
 
-## v0.6.2 ✅ Entry-point guardrails
-- [x] Parser vyžaduje start keyword (`Hokna` nebo deprecated alias) jako první statement
-- [x] Duplicate / pozdní start keyword vrací syntax error
-- [x] IDE title + demo text srovnán na aktuální verzi
+## v0.9 — Cross-compile Linux/Windows (gcc + mingw-w64)
+Cíl: standardizovat build pipeline pro nativní výstupy na Linux a Windows.
 
-## v0.7.2 ✅ Trace detail enrichment for variables panel
-- [x] `DECLARE` trace event now carries `name=value` detail in JS backend
-- [x] `DECLARE` trace event now carries `name=value` detail in VM backend
-- [x] IDE Variables panel can consume real value snapshots without fallback when declaration trace is present
+**Definition of Done (DoD):**
+- Build skripty podporují Linux target (gcc) a Windows target (mingw-w64).
+- `muldac` umí explicitně volit target/platformu (`linux-x64`, `windows-x64` minimálně).
+- CI ověří, že oba targety se úspěšně zkompilují z referenčních fixture.
+- Artefakty buildů jsou verzované a dohledatelné (naming + metadata).
+- Dokumentace má stručný cross-compile návod včetně závislostí.
 
-## v0.7.3 ✅ Assignment snapshots beyond declarations
-- [x] Parser supports assignment statements `x = expr` with validation for identifier and expression
-- [x] JS backend emits `ASSIGN` trace with `name=value` after assignment evaluation
-- [x] VM bytecode adds `ASSIGN` opcode with clear error for unknown variables
-- [x] IDE Variables panel updates snapshots from `ASSIGN` events as values change
+## v1.0-rc — Release candidate
+Cíl: stabilní kandidát na 1.0 s produkčně použitelným toolchainem.
 
-## Next
-- True runtime pause/continue hooks v interpreteru (bez replay emulace)
-- Rich variables snapshots directly from runtime scopes (nested structures / scope drilldown)
-- LSP prototype pro editor integraci
-- Cross-platform binary/runtime packaging
+**Definition of Done (DoD):**
+- Stabilita: žádné známé blocker bugy v parser/compiler/runtime pro deklarovaný rozsah jazyka.
+- Release artifact: připravený installer nebo distribuční balíček pro Linux/Windows (jasně popsané instalační kroky).
+- Debugger parity: klíčové debug scénáře (run/step/trace/variables) funkčně srovnané mezi C a JS dev/debug cestou.
+- Upgrade/migration docs z 0.7.x/0.8/0.9 jsou dokončené.
+- RC checklist (testy, docs, release notes) je uzavřený a auditovatelný.
+
+## Migration note
+- **JS backend se nemaže.** Zůstává oficiálně jako vývojová a debugovací větev.
+- Primární produkční směr je nově C backend (Pascal-first stack), JS slouží pro rychlé experimenty, IDE debugging a porovnávání trace chování.

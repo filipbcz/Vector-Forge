@@ -59,3 +59,13 @@
 - Bytecode + VM přidaly opcode `ASSIGN`; assignment aktualizuje existující binding ve scope chainu a při chybějící proměnné vrací explicitní runtime error.
 - IDE variables panel nově skládá snapshot jen z `DECLARE` + `ASSIGN`, takže změny hodnot po deklaraci jsou vidět i při step replay.
 - Verze package/compiler/bytecode/IDE markerů zvýšena na `v0.7.3`.
+
+## 2026-03-15 — Roadmap pivot: Pascal-first + primární C backend (v0.8/v0.9/v1.0-rc)
+
+- Schválen pivot roadmapy na **Pascal-first** směr s **C backendem jako primárním produkčním targetem**.
+- Definované milníky:
+  - **v0.8**: C backend generator (MVP)
+  - **v0.9**: cross-compile Linux/Windows (gcc + mingw-w64)
+  - **v1.0-rc**: release candidate (stabilita, installer/release artifact, debugger parity)
+- Každý milník má explicitní DoD v `docs/ROADMAP.md` a zkráceně v `PROJECT.md`.
+- **Migration note:** JS backend zůstává podporovaný jako dev/debug path, není deprecovaný pro interní vývojové použití.
