@@ -1,7 +1,7 @@
 # Mulda Language Roadmap
 
 ## Aktuální stav
-- Stabilní verze: **v0.7.3**
+- Stabilní verze: **v0.8.0**
 - Směr: **Pascal-first syntax**, primární runtime/backend: **C**
 - JS backend zůstává zachovaný jako **dev/debug path** (rychlé iterace, trace, IDE experimenty)
 

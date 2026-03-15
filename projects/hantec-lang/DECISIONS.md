@@ -69,3 +69,12 @@
   - **v1.0-rc**: release candidate (stabilita, installer/release artifact, debugger parity)
 - Každý milník má explicitní DoD v `docs/ROADMAP.md` a zkráceně v `PROJECT.md`.
 - **Migration note:** JS backend zůstává podporovaný jako dev/debug path, není deprecovaný pro interní vývojové použití.
+
+## 2026-03-15 — C backend MVP delivered (v0.8.0)
+
+- Compiler nově generuje vedle JS/bytecode i C výstup (`compileMulda().c`, `compiler/src/transpile.js` podporuje `.c` output).
+- CLI podporuje C flow:
+  - `muldac --target c <file.mulda>`
+  - `mulda run-c <file.mulda>` / `muldarun --c <file.mulda>`
+- C backend emituje základní trace eventy přes stderr (text/json podle `MULDA_TRACE_FORMAT`) s backend markerem `c`.
+- Přidány testy pro C generator + CLI parsing a gcc E2E smoke test (pokud je gcc dostupné).

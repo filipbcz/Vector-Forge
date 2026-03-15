@@ -20,7 +20,7 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.7.3
+## Co je ve v0.8.0
 
 - Modernizované web IDE (single-page layout):
   - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
@@ -38,6 +38,8 @@ Experimentální jazyk **Mulda** + web IDE.
 - Jazyk nově podporuje assignment statement `x = expr` vedle deklarací `dej x = expr`
 - Bytecode VM vrací explicitní runtime chybu při assignmentu do neexistující proměnné
 - Zachován compile/run flow přes `dist/` jako v předchozí verzi
+- Nový C backend MVP (`muldac --target c`) + běh přes `mulda run-c`
+- C backend emituje základní trace eventy (`DECLARE`, `ASSIGN`, `PRINT_EXPR`, `IF`, `REPEAT`, `FUNCTION`, `RETURN`) přes stderr při `MULDA_TRACE=1`
 
 ## Quickstart
 
@@ -70,6 +72,8 @@ npm run muldac -- examples/hello.mulda
 npm run muldarun -- examples/hello.mulda
 npm run mulda -- run-bc --trace examples/hello.mulda
 npm run mulda -- run --trace-json examples/hello.mulda
+npm run muldac -- --target c examples/hello.mulda
+npm run mulda -- run-c examples/hello.mulda
 ```
 
 ## Security note
