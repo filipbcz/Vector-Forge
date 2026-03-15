@@ -10,9 +10,9 @@ function die(message) {
   process.exit(1);
 }
 
-function listBundles(version) {
+function listBundles(version, channel) {
   if (!fs.existsSync(bundlesRoot)) return [];
-  const prefix = `rc-${version}-`;
+  const prefix = `${channel}-${version}-`;
   return fs.readdirSync(bundlesRoot)
     .filter((name) => name.startsWith(prefix))
     .map((name) => ({
@@ -63,10 +63,12 @@ function summaryLine(change) {
   return `${change.file}: removed ${change.prev.slice(0, 12)}`;
 }
 
-const version = process.argv[2] || JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
-const bundles = listBundles(version);
+const pkgVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
+const version = process.argv[2] || pkgVersion;
+const channel = process.argv[3] || process.env.RELEASE_CHANNEL || (version.includes('-rc') ? 'rc' : 'ga');
+const bundles = listBundles(version, channel);
 if (bundles.length < 2) {
-  die(`need at least two bundles for version ${version}, found ${bundles.length}`);
+  die(`need at least two bundles for ${channel} version ${version}, found ${bundles.length}`);
 }
 
 const prev = bundles[bundles.length - 2];

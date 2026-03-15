@@ -1,5 +1,28 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — v1.0.0 GA cut (C branch, release freeze)
+
+- Release freeze potvrzen: žádné nové feature, pouze release governance + clean artifact policy.
+- Version bump proveden z `1.0.0-rc.final` na `1.0.0`.
+- Přidán GA release flow:
+  - nový skript `scripts/release-ga.sh`
+  - nový npm script `npm run release:ga -- <file.mulda>`
+  - GA bundle naming `release/bundles/ga-<version>-<timestamp>` (vedle historických RC bundle).
+- Repro audit skript rozšířen o channel-aware prefix (`rc|ga`) s defaultem podle verze.
+- Dokumentace uzavřena pro GA: `README.md`, `docs/ROADMAP.md`, `PROJECT.md`, `docs/RC_CHECKLIST.md`; přidány release notes `docs/RELEASE_NOTES_1.0.0.md`.
+- Final GA gate suite (PASS):
+  - `npm test`
+  - `npm run check:installers`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run release:ga -- examples/hello.mulda` (2x pro reproducibility pair)
+  - `npm run audit:reproducibility`
+- Vytvořené GA bundly:
+  - `release/bundles/ga-1.0.0-20260315T205452Z`
+  - `release/bundles/ga-1.0.0-20260315T205504Z`
+- Sentinel gate (ga): maintainability OK — release governance je explicitní (RC vs GA oddělení), artifact policy je deterministická a auditovatelná.
+- Hydra gate (ga): security posture OK — bez nových privilegovaných operací/external integrations; známý non-blocking drift zůstává omezen na manifest timestamps + PE timestamp class.
+
+
 ## 2026-03-15 — C cross-build input extension hardening (C branch)
 
 - `scripts/build-cross-c.js` nově fail-fast validuje vstup přes helper `resolveSourceFileInput(...)` a odmítá vše mimo `.mulda` s explicitní chybou `Invalid source file: expected a .mulda file, got "<input>"`.

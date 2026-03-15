@@ -20,7 +20,7 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v1.0.0-rc.final
+## Co je ve v1.0.0 (GA)
 
 - Modernizované web IDE (single-page layout):
   - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
@@ -102,15 +102,15 @@ Při `--target c --platform ...` se po úspěšném překladu binárky vytvoří
 
 Pokud některý compiler chybí, build vrátí `[TOOLCHAIN_MISSING]` a doporučený instalační příkaz.
 
-## RC release packaging
+## GA release packaging
 
 ```bash
-bash scripts/release-rc.sh
+bash scripts/release-ga.sh
 # optional: keep only N newest bundles for current version
-RELEASE_KEEP_BUNDLES=3 bash scripts/release-rc.sh
+RELEASE_KEEP_BUNDLES=3 bash scripts/release-ga.sh
 ```
 
-Skript po dokončení automaticky prořeže staré `release/bundles/rc-<version>-*` adresáře (default `5` posledních běhů), aby release větev nebobtnala artifacty.
+Skript po dokončení automaticky prořeže staré `release/bundles/ga-<version>-*` adresáře (default `5` posledních běhů), aby release větev nebobtnala artifacty.
 
 ## Quick verify po instalaci
 
@@ -133,7 +133,7 @@ npm run verify:release
 
 ## Upgrade / migration
 
-- v0.9.x -> v1.0.0-rc.final: `docs/MIGRATION_0.9_to_1.0-rc.md`
+- v0.9.x -> v1.0.0: `docs/MIGRATION_0.9_to_1.0-rc.md` (pozn.: název souboru zůstal historický)
 - RC audit checklist: `docs/RC_CHECKLIST.md`
 - Publishing flow: `docs/PUBLISHING.md`
 

@@ -1,4 +1,4 @@
-# RC Checklist — v1.0.0-rc.final candidate
+# RC Checklist — uzavření RC fáze pro v1.0.0 GA
 
 ## READY/BLOCKER criteria (explicit gate)
 
@@ -27,8 +27,12 @@
 - [x] `npm run release:rc -- examples/hello.mulda`
 - [x] `npm run audit:reproducibility`
 
-## RC verdict
+## RC verdict (closure)
 
-**READY FOR RC.FINAL ✅**
+**RC PHASE CLOSED ✅ / GA CUT READY ✅**
 
 RC.final uzavírá C-branch release kandidáta s kompletní gate sadou, installer kontrolami, release bundlem a reprodukovatelnostním auditem.
+
+## GA note
+- RC fáze byla uzavřena při cutu verze `1.0.0`.
+- Pro GA se používá `npm run release:ga -- examples/hello.mulda` a vzniká bundle `release/bundles/ga-1.0.0-<stamp>`.

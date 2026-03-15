@@ -16,7 +16,7 @@ JS backend zůstává zachován jako **dev/debug path**.
 - Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `1.0.0-rc.final` (final release candidate)
+- Verze: `1.0.0` (GA)
 - IDE má moderní debug UI základy (toolbar + breakpoints + stack/variables panely)
 - Parser primárně podporuje `dyz` + `funkcicka`
 - Variables panel sleduje deklarace i assignment snapshoty (`DECLARE` + `ASSIGN`)
@@ -40,11 +40,15 @@ JS backend zůstává zachován jako **dev/debug path**.
 - CI ověřuje kompilaci obou targetů.
 - Artefakty mají konzistentní verzi a naming.
 
-### v1.0.0-rc.final — Final release candidate
+### v1.0.0 — General Availability (GA)
 **DoD:**
 - Stabilita bez blocker bugů pro deklarovaný scope.
 - Installer/release artifact pro Linux/Windows.
 - Debugger parity mezi C backendem a JS dev/debug cestou.
+
+## Release governance note
+- RC fáze je uzavřená, nové změny po GA pouze přes patch governance (bugfix/security only).
+- GA bundle (`release/bundles/ga-<version>-<stamp>`) běží vedle historických RC bundle (`release/bundles/rc-*`).
 
 ## Migration note
 - JS backend je dál podporovaný pro vývoj a debugging.
