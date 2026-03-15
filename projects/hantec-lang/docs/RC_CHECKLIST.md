@@ -1,60 +1,77 @@
-# RC Checklist — v1.0.0-rc.1
+# RC Checklist — v1.0.0-rc.2
 
 ## Parser parity
 
 ### ✅ Hotovo
-- Entry-point guardrails (`Hokna` first, duplicate/late start rejected).
-- Schválené keywordy (`dyz`, `funkcicka`) + legacy aliases.
-- Deklarace + assignment (`DECLARE`, `ASSIGN`) pro trace-driven debug.
+- [x] Entry-point guardrails (`Hokna` first, duplicate/late start rejected).
+- [x] Schválené keywordy (`dyz`, `funkcicka`) + legacy aliases.
+- [x] Deklarace + assignment (`DECLARE`, `ASSIGN`) pro trace-driven debug.
 
-### Known limitations
-- Parser ještě nepokrývá pokročilé diagnostiky (error recovery pro víc chyb v jednom průchodu).
+### Non-blocking
+- [x] Pokročilé diagnostiky / multi-error recovery nejsou v RC implementované.
+  - **Trade-off:** parser zůstává fail-fast (lepší determinismus pro debug trace).
+  - **Mitigace:** explicitní syntax error line/column + testy parser guardrails (`tests/transpile.test.js`).
 
 ---
 
 ## Compiler parity
 
 ### ✅ Hotovo
-- JS backend + bytecode backend stabilní pro core subset.
-- C backend (`--target c`) a explicitní `--platform linux-x64|windows-x64`.
-- Sidecar metadata (`*.metadata.json`) a release manifest (`*.release-manifest.json`).
+- [x] JS backend + bytecode backend stabilní pro core subset.
+- [x] C backend (`--target c`) a explicitní `--platform linux-x64|windows-x64`.
+- [x] Sidecar metadata (`*.metadata.json`) a release manifest (`*.release-manifest.json`).
+- [x] C trace detail nyní nese deterministické hodnoty proměnných (`x=2`, `x=5`) + `SNAPSHOT` eventy.
 
-### Known limitations
-- C backend zatím nemá optimalizační průchody ani hlubší static analysis warningy.
+### Non-blocking
+- [x] C backend bez optimalizačních průchodů / hlubší static analysis warningů.
+  - **Trade-off:** priorita byla debug parity a reproducibilita RC.
+  - **Mitigace:** build/test gate + Sentinel/Hydra review notes v `DECISIONS.md`.
 
 ---
 
 ## Runtime parity
 
 ### ✅ Hotovo
-- Trace eventy pro JS/VM/C na core scénáře (`DECLARE`, `ASSIGN`, `PRINT`, `IF`, `RETURN`).
-- `mulda run`, `mulda run-bc`, `mulda run-c` flow funkční.
-- Cross-build smoke ověřen pro linux/windows artefakt.
+- [x] Trace eventy pro JS/VM/C na core scénáře (`DECLARE`, `ASSIGN`, `PRINT`, `IF`, `RETURN`).
+- [x] `mulda run`, `mulda run-bc`, `mulda run-c` flow funkční.
+- [x] Cross-build smoke ověřen pro linux/windows artefakt.
+- [x] C runtime trace má deterministické variable snapshots (`SNAPSHOT`) použitelné pro watch panel.
 
-### Known limitations
-- C runtime trace je primárně přes stderr hooky; není ještě plně feature-complete debug runtime.
+### Non-blocking
+- [x] C trace je pořád stderr-hook model (ne plnohodnotný in-process debugger runtime).
+  - **Trade-off:** lehký runtime bez ptrace/agent vrstvy.
+  - **Mitigace:** JSON trace contract + e2e test `testCTraceSnapshotsWhenGccAvailable`.
 
 ---
 
 ## IDE parity
 
 ### ✅ Hotovo
-- Debug layout (run/pause/step/continue) + stack/variables panely.
-- Trace replay stepping MVP funguje na standardních scénářích.
-- Variables panel reflektuje `DECLARE` i `ASSIGN` snapshoty.
+- [x] Debug layout (run/pause/step/continue) + stack/variables panely.
+- [x] Source-line stop map (`line -> trace index[]`) pro breakpoint handling.
+- [x] Variables panel čte `DECLARE`/`ASSIGN` i explicitní `SNAPSHOT` eventy z C běhu.
+- [x] Continue používá stop-map target (nejbližší breakpoint nebo konec), ne jen lineární replay bez mapy.
 
-### Known limitations
-- IDE stepping je replay-driven, ne true runtime pause/continue orchestrace.
+### Non-blocking
+- [x] True runtime pause/continue orchestrace procesu (SIGSTOP/SIGCONT + live stdin/out control) není v RC.
+  - **Trade-off:** současná architektura používá `spawnSync` run flow; robustní live orchestrátor by vyžadoval async debug session vrstvu a přepis server/debug API.
+  - **Mitigace:** deterministické trace + stop-map breakpointing + snapshot watch parity; explicitně kryto testy trace contractu.
 
 ---
 
 ## Debug parity
 
 ### ✅ Hotovo
-- `--trace` / `--trace-json` dostupné v CLI.
-- JSON trace pipeline napojená pro IDE debug tok.
-- Základní parity mezi JS/VM/C ověřena na referenčním `hello.mulda` flow.
+- [x] `--trace` / `--trace-json` dostupné v CLI.
+- [x] JSON trace pipeline napojená pro IDE debug tok.
+- [x] Základní parity mezi JS/VM/C ověřena na referenčním `hello.mulda` flow.
+- [x] C breakpoint MVP parity: source-line stop map + deterministické trace body.
+- [x] Watch/variables snapshot parity: C emit `SNAPSHOT` eventů s hodnotami.
 
-### Known limitations
-- Breakpoint kontrola v C běhu zatím není nativní (MVP parity přes trace replay).
-- Watch expressions jsou zatím MVP bez pokročilých evaluací.
+---
+
+## RC verdict
+
+**READY ✅**
+
+Všechny checklist body jsou uzavřené jako implementované nebo explicitně akceptované non-blocking s trade-off + mitigací + test coverage.

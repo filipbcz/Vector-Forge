@@ -506,6 +506,22 @@ function generateC(ast) {
     '  }',
     '}',
     '',
+    'static void __mulda_trace_num_var(const char *op, int line, const char *name, double value) {',
+    '  if (!__mulda_trace_enabled()) return;',
+    '  char detail[128];',
+    '  snprintf(detail, sizeof(detail), "%s=%g", name, value);',
+    '  __mulda_trace(op, line, detail);',
+    '  __mulda_trace("SNAPSHOT", line, detail);',
+    '}',
+    '',
+    'static void __mulda_trace_bool_var(const char *op, int line, const char *name, bool value) {',
+    '  if (!__mulda_trace_enabled()) return;',
+    '  char detail[128];',
+    '  snprintf(detail, sizeof(detail), "%s=%s", name, value ? "true" : "false");',
+    '  __mulda_trace(op, line, detail);',
+    '  __mulda_trace("SNAPSHOT", line, detail);',
+    '}',
+    '',
     'static void __mulda_print_num(double value) {',
     '  if ((double)((long long)value) == value) printf("%lld\\n", (long long)value);',
     '  else printf("%g\\n", value);',
@@ -528,11 +544,12 @@ function generateC(ast) {
         const cType = node.declaredType === 'joNeboHovno' ? 'bool' : 'double';
         const cExpr = normalizeCExpression(node.expr);
         out.push(`${pad}${cType} ${node.name} = (${cExpr});`);
-        out.push(`${pad}__mulda_trace("DECLARE", ${node.line}, "${cEscape(`${node.name}=%g`)}");`);
+        if (cType === 'bool') out.push(`${pad}__mulda_trace_bool_var("DECLARE", ${node.line}, "${cEscape(node.name)}", ${node.name});`);
+        else out.push(`${pad}__mulda_trace_num_var("DECLARE", ${node.line}, "${cEscape(node.name)}", (double)${node.name});`);
       } else if (node.type === 'assign') {
         const cExpr = normalizeCExpression(node.expr);
         out.push(`${pad}${node.name} = (${cExpr});`);
-        out.push(`${pad}__mulda_trace("ASSIGN", ${node.line}, "${cEscape(`${node.name}=%g`)}");`);
+        out.push(`${pad}__mulda_trace_num_var("ASSIGN", ${node.line}, "${cEscape(node.name)}", (double)${node.name});`);
       } else if (node.type === 'printText') {
         out.push(`${pad}__mulda_trace("PRINT_TEXT", ${node.line}, "");`);
         out.push(`${pad}printf("${cEscape(node.text)}\\n");`);

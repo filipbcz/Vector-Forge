@@ -58,6 +58,22 @@ static void __mulda_trace(const char *op, int line, const char *detail) {
   }
 }
 
+static void __mulda_trace_num_var(const char *op, int line, const char *name, double value) {
+  if (!__mulda_trace_enabled()) return;
+  char detail[128];
+  snprintf(detail, sizeof(detail), "%s=%g", name, value);
+  __mulda_trace(op, line, detail);
+  __mulda_trace("SNAPSHOT", line, detail);
+}
+
+static void __mulda_trace_bool_var(const char *op, int line, const char *name, bool value) {
+  if (!__mulda_trace_enabled()) return;
+  char detail[128];
+  snprintf(detail, sizeof(detail), "%s=%s", name, value ? "true" : "false");
+  __mulda_trace(op, line, detail);
+  __mulda_trace("SNAPSHOT", line, detail);
+}
+
 static void __mulda_print_num(double value) {
   if ((double)((long long)value) == value) printf("%lld\n", (long long)value);
   else printf("%g\n", value);
@@ -67,7 +83,7 @@ int main(void) {
   __mulda_trace("PRINT_EXPR", 3, "");
   printf("%s\n", "Nazdar z Muldy!");
   double x = (3);
-  __mulda_trace("DECLARE", 4, "x=%g");
+  __mulda_trace_num_var("DECLARE", 4, "x", (double)x);
   __mulda_trace("PRINT_EXPR", 5, "");
   __mulda_print_num((double)(x));
   __mulda_trace("PRINT_EXPR", 6, "");
@@ -75,7 +91,7 @@ int main(void) {
   __mulda_trace("PRINT_EXPR", 7, "");
   __mulda_print_num((double)(__mulda_maximum(3, (double)(10), atof("3"), (double)(x))));
   bool jeTo = (true);
-  __mulda_trace("DECLARE", 8, "jeTo=%g");
+  __mulda_trace_bool_var("DECLARE", 8, "jeTo", jeTo);
   __mulda_trace("IF", 9, "");
   if ((jeTo && ! false)) {
     __mulda_trace("PRINT_EXPR", 10, "");

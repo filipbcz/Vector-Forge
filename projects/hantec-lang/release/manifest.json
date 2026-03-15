@@ -1,7 +1,7 @@
 {
   "name": "mulda",
-  "version": "1.0.0-rc.1",
-  "generatedAt": "2026-03-15T15:32:50Z",
+  "version": "1.0.0-rc.2",
+  "generatedAt": "2026-03-15T15:46:10Z",
   "sourceExample": "examples/hello.mulda",
   "artifacts": {
     "linux": "release/linux/bin/mulda",

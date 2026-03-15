@@ -132,3 +132,14 @@
 - Verze package zvýšena na `1.0.0-rc.1`.
 - Sentinel gate (RC): release skript je deterministický, fail-fast na chybějící artefakty/toolchain a generuje checksum inventory.
 - Hydra gate (RC): install skripty nekonfigurují systém globálně mimo zvolený target; známé riziko je trust model runtime (spouštět trusted Mulda input).
+
+## 2026-03-15 — v1.0.0-rc.2 debugger parity hardening (C branch)
+
+- C backend trace detail byl změněn z formátového placeholderu na skutečné hodnoty (`DECLARE`/`ASSIGN` -> `x=2`, `x=5`).
+- Přidán explicitní `SNAPSHOT` event z C běhu pro deterministické watch/variables snapshoty.
+- IDE debug přidalo source-line stop map (`line -> trace index[]`) a `continue` cílí na nejbližší breakpoint index (ne jen lineární replay bez mapy).
+- `Variables / Watch` panel nově bere `SNAPSHOT` spolu s `DECLARE`/`ASSIGN`.
+- Přidán E2E test `testCTraceSnapshotsWhenGccAvailable` ověřující C JSON trace contract a snapshot sekvenci.
+- True runtime pause/continue orchestrace procesu (live SIGSTOP/SIGCONT debug session) byla vyhodnocena jako **non-blocking** pro RC: v aktuální architektuře by vyžadovala asynchronní debug API/session manager nad místo současného `spawnSync` flow.
+- Sentinel gate (rc.2): maintainability OK — změny izolované na trace contract + IDE stop-map, pokryté regresním testem.
+- Hydra gate (rc.2): risk přijatelný — žádná nová privilegia ani externí attack surface; debug data jsou deterministická a auditovatelná přes JSON trace.

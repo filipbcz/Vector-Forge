@@ -153,6 +153,7 @@ konec</textarea>
     const breakpoints = new Set();
     let lineMeta = [];
     let traceEvents = [];
+    let stopMap = new Map();
     let stepIndex = -1;
     let playTimer = null;
     let lastHint = null;
@@ -243,7 +244,7 @@ konec</textarea>
     }
 
     function parseVarsFromEvent(event) {
-      if (!event || (event.op !== 'DECLARE' && event.op !== 'ASSIGN')) {
+      if (!event || !['DECLARE', 'ASSIGN', 'SNAPSHOT'].includes(event.op)) {
         return null;
       }
       const detail = String(event.detail || '');
@@ -252,6 +253,28 @@ konec</textarea>
         return { [match[1]]: match[2] };
       }
       return null;
+    }
+
+    function buildStopMap(events) {
+      const map = new Map();
+      events.forEach((event, idx) => {
+        const line = Number(event?.line || 0);
+        if (!line) return;
+        if (!map.has(line)) map.set(line, []);
+        map.get(line).push(idx);
+      });
+      return map;
+    }
+
+    function findNextStopIndex(fromIndex) {
+      const candidates = [];
+      for (const line of breakpoints) {
+        const indices = stopMap.get(line) || [];
+        const next = indices.find((idx) => idx > fromIndex);
+        if (typeof next === 'number') candidates.push(next);
+      }
+      if (!candidates.length) return traceEvents.length - 1;
+      return Math.min(...candidates);
     }
 
     function renderDebugAt(index) {
@@ -350,27 +373,26 @@ konec</textarea>
       stepBtn.disabled = true;
       continueBtn.disabled = true;
 
+      const targetStop = findNextStopIndex(stepIndex);
       playTimer = setInterval(() => {
-        if (stepIndex >= traceEvents.length - 1) {
+        if (stepIndex >= targetStop) {
           clearInterval(playTimer);
           playTimer = null;
-          pauseBtn.disabled = true;
-          continueBtn.disabled = true;
-          stepBtn.disabled = true;
-          updateState('done');
+          renderDebugAt(stepIndex);
+          if (stepIndex >= traceEvents.length - 1) {
+            pauseBtn.disabled = true;
+            continueBtn.disabled = true;
+            stepBtn.disabled = true;
+            updateState('done');
+          } else {
+            stopPlayback();
+          }
           return;
         }
 
         stepIndex += 1;
-        const current = traceEvents[stepIndex];
-        if (breakpoints.has(current.line)) {
-          renderDebugAt(stepIndex);
-          stopPlayback();
-          return;
-        }
-
         renderDebugAt(stepIndex);
-      }, 350);
+      }, 120);
     }
 
     src.addEventListener('input', renderEditor);
@@ -422,6 +444,7 @@ konec</textarea>
 
         out.textContent = data.output || '(no output)';
         traceEvents = Array.isArray(data.trace) ? data.trace : [];
+        stopMap = buildStopMap(traceEvents);
         stepIndex = -1;
 
         if (!traceEvents.length) {
