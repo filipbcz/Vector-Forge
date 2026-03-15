@@ -19,10 +19,10 @@
 - [x] Standard library basics (MVP: `delka`, `cislo`, `text`)
 - [x] Web IDE syntax highlighting
 
-## v0.5 🚧
+## v0.5 ✅
 - [x] Bytecode prototype + VM runner
 - [x] Test suite + fixtures
-- [ ] Package publishing strategy
+- [x] Package publishing strategy
 
 ## v0.8
 - Cross-platform binary/runtime packaging

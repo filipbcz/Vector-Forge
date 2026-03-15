@@ -58,3 +58,12 @@
 - Hydra security review: test harness používá izolovaný `vm` kontext s timeoutem; neotvírá nové síťové/file capability a nemění existující threat model (`new Function` zůstává pouze ve stávajícím runtime/transpileru).
 - Důvod: uzavřít roadmap bod „Test suite + fixtures“ a průběžně hlídat konzistenci JS vs VM běhu.
 - Dopad: rychlejší regresní kontrola při dalších změnách jazyka i runtime.
+
+## 2026-03-15 — v0.5.2 package publishing strategie + quality gates
+- `package.json` doplněn o whitelist `files`, aby publish artefakt obsahoval jen runtime/compiler/IDE/docs/examples a ne interní šum.
+- Přidán script `npm run pack:check`, který provádí `npm pack --dry-run --json` a validuje povinné soubory + blokuje `tests/`, `dist/`, `.github/`.
+- `prepublishOnly` gate nyní vynucuje `npm test && npm run pack:check` před publish pokusem.
+- Přidána dokumentace `docs/PUBLISHING.md` s release checklistem; `private: true` zůstává jako ochrana proti omylu a publish je explicitní krok až při release rozhodnutí.
+- Roadmap bod "Package publishing strategy" uzavřen ve `docs/ROADMAP.md`.
+- Sentinel review: změna je maintainable (malý validátor v jednom skriptu, deterministické podmínky, bez zásahu do parser/runtime logiky).
+- Hydra security review: zmenšený balíček snižuje attack surface (žádné test fixture nebo build artefakty v distribuci); gate neotevírá nové síťové capability ani tajné vstupy.

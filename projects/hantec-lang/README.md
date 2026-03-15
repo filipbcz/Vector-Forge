@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.5.1 (aktuální)
+## Co je ve v0.5.2 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -24,6 +24,7 @@ Experimentální jazyk **Hantec** + web IDE.
 - CLI příkaz `hantec run-bc file.hantec` (bytecode VM runtime)
 - Bytecode prototyp output `dist/*.bytecode.json` s instrukcemi pro interní VM
 - Web IDE (compile + run) + základní syntax highlighting (keywords/čísla/komentáře)
+- Publishing strategy v0.5.2: `npm run pack:check` + `prepublishOnly` gate (`npm test` + package dry-run validace)
 
 ## Struktura
 
@@ -31,6 +32,7 @@ Experimentální jazyk **Hantec** + web IDE.
 - `runtime/` — Node runtime wrapper + `hantec` CLI
 - `ide-web/` — jednoduché webové IDE s editorem a výstupem
 - `docs/ROADMAP.md` — plán od v0.1 po v1.0
+- `docs/PUBLISHING.md` — release/publish checklist a quality gates
 - `tests/` — transpiler testy + fixture parity testy (JS backend vs bytecode VM)
 - `scripts/dev.sh` — lokální dev workflow
 

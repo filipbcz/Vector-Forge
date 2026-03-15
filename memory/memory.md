@@ -35,3 +35,10 @@
 - Standard finálního reportu: co je hotovo, rizika a další krok.
 - Trvalé procesní pravidlo: po každé změně kódu musí proběhnout kompletní re-run kontrolního cyklu (Sentinel review + Forge testy + Hydra security review, pokud relevantní) ještě před označením úkolu jako „hotovo“.
 - Nové tvrdé pravidlo od Filipa: vždy dodržet vývojový cyklus `návrh -> realizace -> test/re-test -> Sentinel review -> Hydra security review -> teprve potom stav hotovo/nasazení`; Astra tento cyklus vynucuje bez výjimek.
+- Nové tvrdé pravidlo od Filipa: Astra musí řídit exekuci autonomně a proaktivně bez nutnosti, aby se Filip ptal, zda někdo pracuje; sama spouští další kroky podle plánu a posílá stručné checkpointy (co běží / co je hotovo / co blokuje). Toto pravidlo je závazné pro všechny další iterace projektu.
+- VF Ops Watch postoupil na v0.4.0: přidán normalizovaný ingestion model (`ingestion.events`) + deterministická schema validace (`ingestion_schema` check), s testy a gate PASS (Forge/Sentinel/Hydra).
+- VF Ops Watch postoupil na v0.5.0: přidán rules engine MVP (`evaluate_rules`) + lifecycle incidentů `open/ack/resolve` (`apply_lifecycle`) a shadow mode alertingu pro bezpečný rollout; test/gate PASS (Forge/Sentinel/Hydra).
+- Tvrdé rozhodnutí Filipa: projekt **VF Ops Watch** je pozastaven.
+- Veškeré cron joby související s projektem VF Ops Watch zůstávají pozastavené.
+- Projekt VF Ops Watch se nesmí znovu instalovat ani spouštět bez explicitního pokynu Filipa.
+- Mulda/Hantec v0.5.2 uzavřel publishing strategii: whitelist `files`, `pack:check` dry-run validace balíčku a `prepublishOnly` gate (`npm test` + packaging check) před publikací.
