@@ -7,7 +7,7 @@ const { spawnSync } = require('child_process');
 const { transpileMulda, compileMulda } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
 const { parseArgs } = require('../runtime/src/run');
-const { parseCommandArgs, resolveCToolchain, writeNativeArtifactMetadata } = require('../runtime/src/mulda');
+const { parseCommandArgs, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs } = require('../runtime/src/mulda');
 
 function testVariablesAndPrint() {
   const source = [
@@ -247,6 +247,14 @@ function testCBackendGenerationAndArgs() {
   assert.strictEqual(resolveCToolchain('darwin-arm64'), null);
 }
 
+function testCCompileArgsIncludeDeterministicWindowsFlag() {
+  const linuxArgs = getCCompileArgs(resolveCToolchain('linux-x64'), 'in.c', 'out');
+  assert.deepStrictEqual(linuxArgs, ['in.c', '-std=c11', '-O2', '-o', 'out']);
+
+  const windowsArgs = getCCompileArgs(resolveCToolchain('windows-x64'), 'in.c', 'out.exe');
+  assert.deepStrictEqual(windowsArgs, ['in.c', '-std=c11', '-O2', '-Wl,--no-insert-timestamp', '-o', 'out.exe']);
+}
+
 function testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma() {
   const source = [
     'Hokna',
@@ -468,6 +476,7 @@ testRuntimeArgParsers();
 testTraceEventsPresentInBothBackends();
 testAssignUnknownVariableThrowsInVm();
 testCBackendGenerationAndArgs();
+testCCompileArgsIncludeDeterministicWindowsFlag();
 testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma();
 testCBackendBoolAssignmentUsesBoolTrace();
 testCE2EBoolPrintParityWhenGccAvailable();

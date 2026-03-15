@@ -1,5 +1,16 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.5 stability hardening: MinGW deterministic-linker flag attempt (C branch)
+
+- C compile pipeline (`runtime/src/mulda.js`) dostala nový helper `getCCompileArgs(...)` a centralizaci compile argů pro Linux/Windows target.
+- Pro Windows cross-build (`x86_64-w64-mingw32-gcc`) se nově přidává linker flag `-Wl,--no-insert-timestamp` pro omezení PE timestamp nondeterminism v RC release artefaktech.
+- Přidán regresní test `testCCompileArgsIncludeDeterministicWindowsFlag` v `tests/transpile.test.js` (ověří Linux i Windows compile args contract).
+- Gate běhy po změně:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `npm run release:rc` PASS, `npm run audit:reproducibility` PASS.
+  - Repro audit: strict Linux artefakt je stabilní; Windows binárka stále může driftovat (reportováno jako allowed non-deterministic drift).
+- Sentinel gate: maintainability OK — compile arg logika je nově izolovaná v helperu a krytá unit testem.
+- Hydra gate: security posture OK — žádná nová privilegia ani externí integrace; změna je čistě build determinism hardening.
+
 ## 2026-03-15 — v1.0.0-rc.5 installer smoke automation + reproducibility audit (C branch)
 
 - Přidán CI workflow `.github/workflows/mulda-c-cross.yml` s explicitními RC gate kroky:
