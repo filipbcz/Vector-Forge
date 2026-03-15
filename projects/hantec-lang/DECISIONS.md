@@ -152,6 +152,15 @@
 - Sentinel gate (rc.2): maintainability OK — změny izolované na trace contract + IDE stop-map, pokryté regresním testem.
 - Hydra gate (rc.2): risk přijatelný — žádná nová privilegia ani externí attack surface; debug data jsou deterministická a auditovatelná přes JSON trace.
 
+## 2026-03-15 — v1.0.0-rc.2 release manifest hardening: C source checksum
+
+- `scripts/build-cross-c.js` manifest nyní obsahuje `cSourceSha256` (SHA256 otisk generovaného `dist/<name>.c`).
+- Doplněna regresní kontrola v `tests/transpile.test.js` (`testCrossBuildManifestScript`), která ověřuje přítomnost `cSource` + validní 64-hex checksum.
+- Cíl: lepší auditovatelnost RC bundle (zdroj C -> binárky -> metadata) bez změny runtime chování.
+- Forge test gate: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `bash scripts/release-rc.sh` PASS.
+- Sentinel gate: maintainability OK — změna je izolovaná na build manifest contract + pokrytá testem.
+- Hydra gate: security posture OK — pouze integrity metadata, žádná nová privilegia ani attack surface.
+
 ## 2026-03-15 — C backend parser hardening: escaped-string arg split fix
 
 - Opraven bug ve `splitCallArgs` (C backend expression normalization), kde escape detekce uvnitř stringu porovnávala dvouznakový token `"\\\\"` místo správného jednoznakového backslashe `"\\"`.

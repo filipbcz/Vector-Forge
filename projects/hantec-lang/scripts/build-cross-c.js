@@ -68,12 +68,14 @@ function main() {
     builds.push(result);
   }
 
+  const cSource = path.join(distDir, `${baseName}.c`);
   const manifest = {
     lang: 'mulda',
     version: packageJson.version,
     generatedAt: new Date().toISOString(),
     sourceFile,
-    cSource: path.join(distDir, `${baseName}.c`),
+    cSource,
+    cSourceSha256: fs.existsSync(cSource) ? sha256File(cSource) : null,
     platforms: Object.fromEntries(builds.map((b) => [b.platform, {
       status: b.status,
       artifact: b.artifact,
