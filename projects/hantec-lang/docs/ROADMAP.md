@@ -15,7 +15,7 @@
 
 ## v0.3 🚧
 - [x] Control flow (`kdyz`, `opakuj`, `konec`)
-- [ ] Functions
+- [x] Functions
 - [ ] Standard library basics
 - [ ] Web IDE syntax highlighting
 

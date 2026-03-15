@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.3 (aktuální)
+## Co je ve v0.4 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -10,6 +10,8 @@ Experimentální jazyk **Hantec** + web IDE.
 - Blokové řízení toku:
   - `kdyz <podminka>` ... `konec`
   - `opakuj <pocet>` ... `konec`
+  - `funkce <name>(<params>)` ... `konec`
+- Návratová hodnota přes `vrat <expr>` uvnitř `funkce`
 - Chybové hlášky ze transpileru obsahují `line/col`
 - CLI příkaz `hantec run file.hantec`
 - Minimal web IDE (compile + run)
