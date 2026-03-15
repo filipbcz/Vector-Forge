@@ -1,6 +1,6 @@
 {
   "name": "mulda-lang",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.5",
   "private": true,
   "description": "Scaffold for Mulda language + web IDE",
   "bin": {
@@ -25,6 +25,8 @@
     "demo:bytecode": "npm run compile && npm run run:bytecode",
     "ide": "node ide-web/server.js",
     "test": "node tests/transpile.test.js && node tests/fixtures.test.js && node tests/ai-hint.test.js",
+    "check:installers": "node scripts/check-installers.js",
+    "audit:reproducibility": "node scripts/audit-release-reproducibility.js",
     "pack:check": "npm pack --dry-run --json > .pack-dry-run.json && node scripts/check-packaging.js .pack-dry-run.json",
     "prepublishOnly": "npm test && npm run pack:check",
     "mulda": "node runtime/src/mulda.js",

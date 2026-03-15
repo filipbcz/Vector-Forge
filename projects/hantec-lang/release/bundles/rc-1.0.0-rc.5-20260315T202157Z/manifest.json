@@ -1,0 +1,11 @@
+{
+  "name": "mulda",
+  "version": "1.0.0-rc.5",
+  "generatedAt": "2026-03-15T20:22:01Z",
+  "sourceExample": "examples/hello.mulda",
+  "artifacts": {
+    "linux": "release/linux/bin/mulda",
+    "windows": "release/windows/bin/mulda.exe"
+  },
+  "sourceManifest": "dist/hello.release-manifest.json"
+}

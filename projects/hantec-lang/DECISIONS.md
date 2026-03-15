@@ -1,5 +1,25 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — v1.0.0-rc.5 installer smoke automation + reproducibility audit (C branch)
+
+- Přidán CI workflow `.github/workflows/mulda-c-cross.yml` s explicitními RC gate kroky:
+  - `npm test`
+  - `npm run check:installers`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run release:rc`
+  - `npm run audit:reproducibility`
+- Přidán instalační gate skript `scripts/check-installers.js`:
+  - Linux installer smoke (`release/install-linux.sh --dry-run`) kontroluje required output markery.
+  - Windows installer má statickou validaci required placeholderů + sanity (volitelně i PowerShell parser tokenize check, pokud je dostupný `pwsh`).
+- Přidán reproducibility audit `scripts/audit-release-reproducibility.js`:
+  - porovnává dva po sobě jdoucí bundly stejné verze,
+  - failuje na driftu strict linux artefaktu (`release/linux/bin/mulda`),
+  - known non-deterministic drift (`release/windows/bin/mulda.exe` PE timestamp + timestamped manifesty) reportuje informativně, neflaky.
+- RC checklist byl přepsán na explicitní READY/BLOCKER kritéria a označen jako RC.5 PASS.
+- Verze package zvýšena na `1.0.0-rc.5`.
+- Sentinel gate (rc.5): maintainability OK — gate logika je izolovaná v samostatných skriptech, fail reasons jsou čitelné a bez skrytých side efektů.
+- Hydra gate (rc.5): security posture OK — žádná nová privilegia ani externí síťová integrace; audit je read-only nad lokálními release artefakty.
+
 ## 2026-03-15 — RC.4 stability re-validation + release artifact refresh (C branch)
 
 - Proveden celý stabilizační cyklus v C-first větvi bez rozšiřování JS/VM scope:

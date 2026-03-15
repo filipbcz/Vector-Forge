@@ -1,75 +1,34 @@
-# RC Checklist — v1.0.0-rc.4 candidate
+# RC Checklist — v1.0.0-rc.5 candidate
 
-## Parser parity
+## READY/BLOCKER criteria (explicit gate)
 
-### ✅ Hotovo
-- [x] Entry-point guardrails (`Hokna` first, duplicate/late start rejected).
-- [x] Schválené keywordy (`dyz`, `funkcicka`) + legacy aliases.
-- [x] Deklarace + assignment (`DECLARE`, `ASSIGN`) pro trace-driven debug.
+### BLOCKER (musí být zelené)
+- [x] `npm test` PASS.
+- [x] `npm run check:installers` PASS.
+  - linux installer dry-run vrací očekávané markery.
+  - windows installer projde statickou validací syntax/sanity + required placeholders.
+- [x] `npm run build:c:cross -- examples/hello.mulda` PASS (linux-x64 + windows-x64).
+- [x] `npm run release:rc` PASS (včetně integrity verify kroku).
+- [x] `npm run audit:reproducibility` PASS (strict linux artefakt beze driftu mezi dvěma po sobě jdoucími RC bundly; windows/manifest drift reportován jako non-deterministic info).
 
-### Non-blocking
-- [x] Pokročilé diagnostiky / multi-error recovery nejsou v RC implementované.
-  - **Trade-off:** parser zůstává fail-fast (lepší determinismus pro debug trace).
-  - **Mitigace:** explicitní syntax error line/column + testy parser guardrails (`tests/transpile.test.js`).
-
----
-
-## Compiler parity
-
-### ✅ Hotovo
-- [x] JS backend + bytecode backend stabilní pro core subset.
-- [x] C backend (`--target c`) a explicitní `--platform linux-x64|windows-x64`.
-- [x] Sidecar metadata (`*.metadata.json`) a release manifest (`*.release-manifest.json`).
-- [x] C trace detail nese deterministické hodnoty proměnných + `SNAPSHOT` eventy.
-
-### RC.4 hardening
-- [x] Release integrity check script (`scripts/verify-release-integrity.sh`) ověřuje required artefakty + checksum inventory.
-- [x] `release:rc` flow fail-fast padá při chybějícím artefaktu / chybějícím checksum entry / mismatch (`sha256sum -c`).
-- [x] CI (`mulda-c-cross.yml`) po `release:rc` explicitně běží `sha256sum -c release/checksums.sha256`.
+### READY (musí být potvrzené)
+- [x] Release bundle vytvořen pro `v1.0.0-rc.5`.
+- [x] RC checklist a rozhodnutí aktualizované po gate bězích.
+- [x] Sentinel gate note zapsaná v `DECISIONS.md`.
+- [x] Hydra gate note zapsaná v `DECISIONS.md`.
 
 ---
 
-## Runtime parity
+## RC.5 gate run (provedeno)
 
-### ✅ Hotovo
-- [x] Trace eventy pro JS/VM/C na core scénáře (`DECLARE`, `ASSIGN`, `PRINT`, `IF`, `RETURN`).
-- [x] `mulda run`, `mulda run-bc`, `mulda run-c` flow funkční.
-- [x] Cross-build smoke ověřen pro linux/windows artefakt.
-- [x] C runtime trace má deterministické variable snapshots (`SNAPSHOT`) použitelné pro watch panel.
-
----
-
-## Installer readiness (RC.4)
-
-### ✅ Hotovo
-- [x] Linux installer má `--dry-run` / `-n` mód a validuje payload strukturu s jasnou hint hláškou.
-- [x] Linux installer vypisuje stručný quick-verify postup (`mulda --help`).
-- [x] Windows installer validuje vstupní cesty (`TargetDir`, `BinDir`) a dává jasné next-step instrukce (PATH + nový terminál + verify command).
-
----
-
-## Debug parity
-
-### ✅ Hotovo
-- [x] `--trace` / `--trace-json` dostupné v CLI.
-- [x] JSON trace pipeline napojená pro IDE debug tok.
-- [x] Základní parity mezi JS/VM/C ověřena na referenčním `hello.mulda` flow.
-- [x] C breakpoint MVP parity: source-line stop map + deterministické trace body.
-- [x] Watch/variables snapshot parity: C emit `SNAPSHOT` eventů s hodnotami.
-
----
-
-## RC.4 release gate run
-
-### ✅ Uzavřeno
 - [x] `npm test`
+- [x] `npm run check:installers`
 - [x] `npm run build:c:cross -- examples/hello.mulda`
 - [x] `npm run release:rc`
-- [x] Linux artifact smoke run (součást `release:rc`)
-- [x] Lokální integrity verify: `sha256sum -c release/checksums.sha256`
+- [x] `npm run audit:reproducibility`
 
 ## RC verdict
 
-**READY FOR RC4 CANDIDATE ✅**
+**READY FOR RC5 CANDIDATE ✅**
 
-RC.4 uzavírá release-integrity hardening + installer polish bez rozšíření scope mimo C větev. Gate běhy jsou zelené a kandidát `v1.0.0-rc.4` je připravený pro push.
+RC.5 uzavírá installer smoke automatizaci + reproducibility audit v C-větvi. Gate běhy jsou zelené; případný drift je reportován explicitně a strict binární artefakty jsou stabilní.
