@@ -16,13 +16,14 @@ Experimentální jazyk **Mulda** + web IDE.
 - print: `rekni`, `spocitej`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.6.1
+## Co je ve v0.6.2
 
 - `dej x = ...` deklarace proměnných (volitelně `dej flag: joNeboHovno = jo`)
 - bloky `kdyz`, `opakuj`, `funkce`, `vrat`, `konec`
 - stdlib: `delka`, `cislo`, `text`, `minimum`, `maximum`, `obsahuje`
 - transpile do JS + bytecode (`mulda-vm`)
 - trace mód pro oba backendy (`--trace` text, `--trace-json` JSON lines)
+- parser teď vyžaduje start keyword (`Hokna`/legacy alias) jako první statement
 - web IDE s highlightem Mulda keywordů
 - CLI: `mulda`, `muldac`, `muldarun`
 

@@ -24,3 +24,9 @@
   - JS backend přes preload `runtime/src/js-trace-hook.js`
   - VM backend přes rozšířený tracer s `traceFormat`.
 - CLI (`mulda`, `muldarun`) i dokumentace aktualizovány.
+
+## 2026-03-15 — Entry-point guardrails (v0.6.2)
+
+- Parser nově vyžaduje start keyword (`Hokna` nebo legacy alias `nacpi`/`program`) jako první non-comment statement.
+- Duplicitní nebo pozdě umístěný start keyword vrací explicitní syntax error.
+- Tím se jazyk chová víc podle schválené specifikace (deterministický entry-point) a IDE/demo metadata byla dorovnána na v0.6.2.

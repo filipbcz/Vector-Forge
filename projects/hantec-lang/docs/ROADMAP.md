@@ -16,3 +16,8 @@
 ## v0.6.1 ✅ Trace parity
 - [x] Structured trace output i pro JS backend
 - [x] `--trace-json` pro JS i bytecode backend
+
+## v0.6.2 ✅ Entry-point guardrails
+- [x] Parser vyžaduje start keyword (`Hokna` nebo deprecated alias) jako první statement
+- [x] Duplicate / pozdní start keyword vrací syntax error
+- [x] IDE title + demo text srovnán na aktuální verzi

@@ -13,6 +13,7 @@ Jazyk **Mulda** + web IDE pro rychlé iterace syntaxe, compileru a runtime.
 - Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `0.6.1`
+- Verze: `0.6.2`
 - Compiler/runtime/IDE/testy/docs přepnuté na Mulda slovník
+- Parser vynucuje entry-point (`Hokna`/legacy alias) jako první statement
 - Deprecated kompatibilita ponechána jen pro staré aliasy (`nacpi`,`program`,`rekni`,`spocitej`,`hantec` CLI)

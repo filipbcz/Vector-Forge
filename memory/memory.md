@@ -42,3 +42,4 @@
 - Veškeré cron joby související s projektem VF Ops Watch zůstávají pozastavené.
 - Projekt VF Ops Watch se nesmí znovu instalovat ani spouštět bez explicitního pokynu Filipa.
 - Mulda/Hantec v0.5.2 uzavřel publishing strategii: whitelist `files`, `pack:check` dry-run validace balíčku a `prepublishOnly` gate (`npm test` + packaging check) před publikací.
+- Mulda v0.6.2 zavedla entry-point guardrails: parser vyžaduje start keyword (`Hokna` nebo legacy alias) jako první non-comment statement a odmítá duplicitní/pozdní start token.
