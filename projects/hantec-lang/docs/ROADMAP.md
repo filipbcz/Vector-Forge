@@ -11,5 +11,8 @@
 
 ## Next
 - Cross-platform binary/runtime packaging
-- Structured trace output i pro JS backend
 - LSP prototype pro editor integraci
+
+## v0.6.1 ✅ Trace parity
+- [x] Structured trace output i pro JS backend
+- [x] `--trace-json` pro JS i bytecode backend

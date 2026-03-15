@@ -16,12 +16,13 @@ Experimentální jazyk **Mulda** + web IDE.
 - print: `rekni`, `spocitej`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.6.0
+## Co je ve v0.6.1
 
 - `dej x = ...` deklarace proměnných (volitelně `dej flag: joNeboHovno = jo`)
 - bloky `kdyz`, `opakuj`, `funkce`, `vrat`, `konec`
 - stdlib: `delka`, `cislo`, `text`, `minimum`, `maximum`, `obsahuje`
 - transpile do JS + bytecode (`mulda-vm`)
+- trace mód pro oba backendy (`--trace` text, `--trace-json` JSON lines)
 - web IDE s highlightem Mulda keywordů
 - CLI: `mulda`, `muldac`, `muldarun`
 
@@ -38,6 +39,7 @@ npm test
 npm run muldac -- examples/hello.mulda
 npm run muldarun -- examples/hello.mulda
 npm run mulda -- run-bc --trace examples/hello.mulda
+npm run mulda -- run --trace-json examples/hello.mulda
 
 # po npm link
 # mulda run examples/hello.mulda

@@ -8,8 +8,8 @@ const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
 const runner = path.join(projectRoot, 'runtime/src/run.js');
 
 function printUsage() {
-  console.error('Usage: mulda <compile|run|run-bc> [--trace|--debug] <file.mulda>');
-  console.error('Aliases: muldac <file.mulda> ; muldarun [--trace|--debug] <file.mulda> [--bc]');
+  console.error('Usage: mulda <compile|run|run-bc> [--trace|--debug|--trace-json] <file.mulda>');
+  console.error('Aliases: muldac <file.mulda> ; muldarun [--trace|--debug|--trace-json] <file.mulda> [--bc]');
 }
 
 function compileFile(inputFile) {
@@ -40,7 +40,7 @@ function runFile(inputFile, mode = 'js', options = {}) {
 
   const runnerArgs = [runner];
   if (options.trace) {
-    runnerArgs.push('--trace');
+    runnerArgs.push(options.traceFormat === 'json' ? '--trace-json' : '--trace');
   }
   runnerArgs.push(entryFile);
 
@@ -50,12 +50,17 @@ function runFile(inputFile, mode = 'js', options = {}) {
 
 function parseCommandArgs(argv) {
   const args = [...argv];
-  const options = { trace: false, bytecode: false };
+  const options = { trace: false, traceFormat: 'text', bytecode: false };
 
   while (args[0] && args[0].startsWith('--')) {
     const flag = args.shift();
     if (flag === '--trace' || flag === '--debug') {
       options.trace = true;
+      continue;
+    }
+    if (flag === '--trace-json') {
+      options.trace = true;
+      options.traceFormat = 'json';
       continue;
     }
     if (flag === '--bc' || flag === '--bytecode') {

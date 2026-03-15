@@ -69,13 +69,20 @@ function createTracer(options = {}) {
     return null;
   }
 
-  const sink = typeof options.trace === 'function'
-    ? options.trace
-    : (line) => console.error(line);
+  if (typeof options.trace === 'function') {
+    return options.trace;
+  }
+
+  const format = options.traceFormat === 'json' ? 'json' : 'text';
 
   return (event) => {
-    const line = `[trace] ${event.op} line=${event.line ?? '?'} depth=${event.depth ?? 0} ${event.detail || ''}`.trim();
-    sink(line);
+    if (format === 'json') {
+      console.error(JSON.stringify({ trace: true, backend: 'vm', ...event }));
+      return;
+    }
+
+    const line = `[trace:vm] ${event.op} line=${event.line ?? '?'} depth=${event.depth ?? 0} ${event.detail || ''}`.trim();
+    console.error(line);
   };
 }
 
