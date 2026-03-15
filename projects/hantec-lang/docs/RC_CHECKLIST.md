@@ -1,4 +1,4 @@
-# RC Checklist — v1.0.0-rc.2
+# RC Checklist — v1.0.0-rc.3 candidate
 
 ## Parser parity
 
@@ -70,8 +70,15 @@
 
 ---
 
+## Looping blockers (RC2 -> RC3)
+
+### ✅ Uzavřeno
+- [x] RC loop zastaven čistým Mulda-only cutem (bez `vf-ops-watch` souborů).
+- [x] Final gates pro C-only release proběhly end-to-end (`test`, `build:c:cross`, `release:rc`).
+- [x] RC bundle + manifest/checksum byly znovu vygenerované pro kandidáta `v1.0.0-rc.3`.
+
 ## RC verdict
 
-**READY ✅**
+**READY FOR RC3 CANDIDATE ✅**
 
-Všechny checklist body jsou uzavřené jako implementované nebo explicitně akceptované non-blocking s trade-off + mitigací + test coverage.
+Všechny checklist body jsou uzavřené jako implementované nebo explicitně akceptované non-blocking s trade-off + mitigací + test coverage. Looping blockers z RC2 jsou explicitně uzavřené a kandidát `v1.0.0-rc.3` je připravený pro push.
