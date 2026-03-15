@@ -1,4 +1,4 @@
-# RC Checklist — v1.0.0-rc.3 candidate
+# RC Checklist — v1.0.0-rc.4 candidate
 
 ## Parser parity
 
@@ -20,12 +20,12 @@
 - [x] JS backend + bytecode backend stabilní pro core subset.
 - [x] C backend (`--target c`) a explicitní `--platform linux-x64|windows-x64`.
 - [x] Sidecar metadata (`*.metadata.json`) a release manifest (`*.release-manifest.json`).
-- [x] C trace detail nyní nese deterministické hodnoty proměnných (`x=2`, `x=5`) + `SNAPSHOT` eventy.
+- [x] C trace detail nese deterministické hodnoty proměnných + `SNAPSHOT` eventy.
 
-### Non-blocking
-- [x] C backend bez optimalizačních průchodů / hlubší static analysis warningů.
-  - **Trade-off:** priorita byla debug parity a reproducibilita RC.
-  - **Mitigace:** build/test gate + Sentinel/Hydra review notes v `DECISIONS.md`.
+### RC.4 hardening
+- [x] Release integrity check script (`scripts/verify-release-integrity.sh`) ověřuje required artefakty + checksum inventory.
+- [x] `release:rc` flow fail-fast padá při chybějícím artefaktu / chybějícím checksum entry / mismatch (`sha256sum -c`).
+- [x] CI (`mulda-c-cross.yml`) po `release:rc` explicitně běží `sha256sum -c release/checksums.sha256`.
 
 ---
 
@@ -37,25 +37,14 @@
 - [x] Cross-build smoke ověřen pro linux/windows artefakt.
 - [x] C runtime trace má deterministické variable snapshots (`SNAPSHOT`) použitelné pro watch panel.
 
-### Non-blocking
-- [x] C trace je pořád stderr-hook model (ne plnohodnotný in-process debugger runtime).
-  - **Trade-off:** lehký runtime bez ptrace/agent vrstvy.
-  - **Mitigace:** JSON trace contract + e2e test `testCTraceSnapshotsWhenGccAvailable`.
-
 ---
 
-## IDE parity
+## Installer readiness (RC.4)
 
 ### ✅ Hotovo
-- [x] Debug layout (run/pause/step/continue) + stack/variables panely.
-- [x] Source-line stop map (`line -> trace index[]`) pro breakpoint handling.
-- [x] Variables panel čte `DECLARE`/`ASSIGN` i explicitní `SNAPSHOT` eventy z C běhu.
-- [x] Continue používá stop-map target (nejbližší breakpoint nebo konec), ne jen lineární replay bez mapy.
-
-### Non-blocking
-- [x] True runtime pause/continue orchestrace procesu (SIGSTOP/SIGCONT + live stdin/out control) není v RC.
-  - **Trade-off:** současná architektura používá `spawnSync` run flow; robustní live orchestrátor by vyžadoval async debug session vrstvu a přepis server/debug API.
-  - **Mitigace:** deterministické trace + stop-map breakpointing + snapshot watch parity; explicitně kryto testy trace contractu.
+- [x] Linux installer má `--dry-run` / `-n` mód a validuje payload strukturu s jasnou hint hláškou.
+- [x] Linux installer vypisuje stručný quick-verify postup (`mulda --help`).
+- [x] Windows installer validuje vstupní cesty (`TargetDir`, `BinDir`) a dává jasné next-step instrukce (PATH + nový terminál + verify command).
 
 ---
 
@@ -70,15 +59,17 @@
 
 ---
 
-## Looping blockers (RC2 -> RC3)
+## RC.4 release gate run
 
 ### ✅ Uzavřeno
-- [x] RC loop zastaven čistým Mulda-only cutem (bez `vf-ops-watch` souborů).
-- [x] Final gates pro C-only release proběhly end-to-end (`test`, `build:c:cross`, `release:rc`).
-- [x] RC bundle + manifest/checksum byly znovu vygenerované pro kandidáta `v1.0.0-rc.3`.
+- [x] `npm test`
+- [x] `npm run build:c:cross -- examples/hello.mulda`
+- [x] `npm run release:rc`
+- [x] Linux artifact smoke run (součást `release:rc`)
+- [x] Lokální integrity verify: `sha256sum -c release/checksums.sha256`
 
 ## RC verdict
 
-**READY FOR RC3 CANDIDATE ✅**
+**READY FOR RC4 CANDIDATE ✅**
 
-Všechny checklist body jsou uzavřené jako implementované nebo explicitně akceptované non-blocking s trade-off + mitigací + test coverage. Looping blockers z RC2 jsou explicitně uzavřené a kandidát `v1.0.0-rc.3` je připravený pro push.
+RC.4 uzavírá release-integrity hardening + installer polish bez rozšíření scope mimo C větev. Gate běhy jsou zelené a kandidát `v1.0.0-rc.4` je připravený pro push.

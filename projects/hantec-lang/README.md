@@ -112,6 +112,25 @@ RELEASE_KEEP_BUNDLES=3 bash scripts/release-rc.sh
 
 Skript po dokončení automaticky prořeže staré `release/bundles/rc-<version>-*` adresáře (default `5` posledních běhů), aby release větev nebobtnala artifacty.
 
+## Quick verify po instalaci
+
+```bash
+# 1) ověř CLI dostupnost
+mulda --help
+
+# 2) ověř release integritu (z rootu projektu / bundle)
+sha256sum -c release/checksums.sha256
+
+# 3) smoke run linux artefaktu
+./release/linux/bin/mulda examples/hello.mulda
+```
+
+Volitelně můžeš použít helper skript:
+
+```bash
+npm run verify:release
+```
+
 ## Upgrade / migration
 
 - v0.9.x -> v1.0.0-rc.2: `docs/MIGRATION_0.9_to_1.0-rc.md`

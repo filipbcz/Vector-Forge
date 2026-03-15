@@ -42,6 +42,12 @@ jobs:
       - name: Cross build Linux + Windows from one source
         run: npm run build:c:cross -- examples/hello.mulda
 
+      - name: Build RC bundle
+        run: npm run release:rc
+
+      - name: Verify release checksums (fail-fast)
+        run: sha256sum -c release/checksums.sha256
+
       - name: Upload C artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -53,4 +59,9 @@ jobs:
             projects/hantec-lang/dist/hello-windows-x64.exe
             projects/hantec-lang/dist/hello-windows-x64.exe.metadata.json
             projects/hantec-lang/dist/hello.release-manifest.json
+            projects/hantec-lang/release/checksums.sha256
+            projects/hantec-lang/release/manifest.json
+            projects/hantec-lang/release/manifest.source.json
+            projects/hantec-lang/release/linux/bin/mulda
+            projects/hantec-lang/release/windows/bin/mulda.exe
           if-no-files-found: error

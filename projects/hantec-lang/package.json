@@ -1,6 +1,6 @@
 {
   "name": "mulda-lang",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "private": true,
   "description": "Scaffold for Mulda language + web IDE",
   "bin": {
@@ -32,6 +32,7 @@
     "muldarun": "node runtime/src/mulda.js run",
     "hantec": "node runtime/src/hantec.js",
     "build:c:cross": "node scripts/build-cross-c.js",
-    "release:rc": "bash scripts/release-rc.sh"
+    "release:rc": "bash scripts/release-rc.sh",
+    "verify:release": "bash scripts/verify-release-integrity.sh"
   }
 }

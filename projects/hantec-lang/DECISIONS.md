@@ -1,5 +1,22 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — v1.0.0-rc.4 release integrity + installer hardening (C branch)
+
+- Přidán nový fail-fast integrity gate `scripts/verify-release-integrity.sh`:
+  - kontroluje přítomnost required release artefaktů,
+  - kontroluje, že checksum inventory obsahuje required položky,
+  - spouští `sha256sum -c release/checksums.sha256`.
+- `scripts/release-rc.sh` nyní po generování checksumů automaticky spouští integrity verify krok (release se zastaví na první nesrovnalosti).
+- CI workflow `mulda-c-cross.yml` nově po `release:rc` explicitně běží `sha256sum -c release/checksums.sha256`.
+- Installer polish:
+  - Linux installer přidal `--dry-run`/`-n` a výrazně lepší chyby + hinty.
+  - Windows template přidal validaci cest (`TargetDir`, `BinDir`) a explicitní next-step instrukce.
+- Dokumentace:
+  - RC checklist aktualizován na RC.4 a uzavírá release-hardening + installer body.
+  - README má stručný post-install quick verify postup.
+- Sentinel gate (rc.4): maintainability OK — změny jsou izolované do release/install/docs vrstvy; bez zásahu do parser/runtime semantics.
+- Hydra gate (rc.4): security posture OK — integrita artefaktů je posílená fail-fast kontrolou; bez nových síťových integrací nebo privilegovaných operací.
+
 ## 2026-03-15 — RC.3 test-gate stabilizace: manifest version assertion bez hardcodu
 
 - V regresním testu `testCrossBuildManifestScript` byla odstraněna hardcoded hodnota `1.0.0-rc.2` a assertion nyní bere verzi z `package.json`.

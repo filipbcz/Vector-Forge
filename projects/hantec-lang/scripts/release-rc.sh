@@ -12,15 +12,15 @@ BUNDLE_DIR="release/bundles/rc-${VERSION}-${STAMP}"
 KEEP_BUNDLES="${RELEASE_KEEP_BUNDLES:-5}"
 
 log() { printf '[release-rc] %s\n' "$*"; }
-need_file() { [[ -f "$1" ]] || { echo "Missing required file: $1" >&2; exit 1; }; }
+need_file() { [[ -f "$1" ]] || { echo "[release-rc] ERROR: Missing required file: $1" >&2; exit 1; }; }
 
 log "Version: $VERSION"
 log "Source: $SOURCE_FILE"
 
-log "1/5 npm test"
+log "1/6 npm test"
 npm test
 
-log "2/5 cross build"
+log "2/6 cross build"
 npm run build:c:cross -- "$SOURCE_FILE"
 
 LINUX_ARTIFACT="dist/${BASE_NAME}-linux-x64"
@@ -30,12 +30,12 @@ need_file "$LINUX_ARTIFACT"
 need_file "$WINDOWS_ARTIFACT"
 need_file "$MANIFEST_INPUT"
 
-log "3/5 smoke run linux artifact"
+log "3/6 smoke run linux artifact"
 ARTIFACT_OUTPUT="$($LINUX_ARTIFACT)"
 printf '%s\n' "$ARTIFACT_OUTPUT"
 grep -q 'Nazdar z Muldy!' <<<"$ARTIFACT_OUTPUT" || { echo "Unexpected linux smoke output" >&2; exit 1; }
 
-log "4/5 prepare release structure"
+log "4/6 prepare release structure"
 rm -rf release/linux release/windows
 mkdir -p \
   release/linux/bin release/linux/runtime/src release/linux/compiler/src \
@@ -64,13 +64,16 @@ cat > release/manifest.json <<JSON
 JSON
 cp "$MANIFEST_INPUT" release/manifest.source.json
 
-log "5/5 checksums"
+log "5/6 checksums"
 {
   sha256sum release/linux/bin/mulda
   sha256sum release/windows/bin/mulda.exe
   sha256sum release/manifest.json
   sha256sum release/manifest.source.json
 } > release/checksums.sha256
+
+log "6/6 verify release integrity"
+bash scripts/verify-release-integrity.sh
 
 rm -rf "$BUNDLE_DIR"
 mkdir -p "$BUNDLE_DIR"
