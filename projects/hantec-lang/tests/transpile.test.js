@@ -1,10 +1,13 @@
 const assert = require('assert');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const vm = require('vm');
 const { spawnSync } = require('child_process');
 const { transpileMulda, compileMulda } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
 const { parseArgs } = require('../runtime/src/run');
-const { parseCommandArgs, resolveCToolchain } = require('../runtime/src/mulda');
+const { parseCommandArgs, resolveCToolchain, writeNativeArtifactMetadata } = require('../runtime/src/mulda');
 
 function testVariablesAndPrint() {
   const source = [
@@ -244,6 +247,31 @@ function testCBackendGenerationAndArgs() {
   assert.strictEqual(resolveCToolchain('darwin-arm64'), null);
 }
 
+function testNativeArtifactMetadataSidecar() {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mulda-meta-'));
+  const artifactPath = path.join(tmpDir, 'hello-linux-x64');
+
+  writeNativeArtifactMetadata({
+    sourceFile: '/workspace/examples/hello.mulda',
+    cFile: '/workspace/dist/hello.c',
+    artifactFile: artifactPath,
+    toolchain: { cc: 'gcc', outputExt: '', targetLabel: 'linux-x64' },
+    platform: 'linux-x64'
+  });
+
+  const metadataPath = `${artifactPath}.metadata.json`;
+  assert.strictEqual(fs.existsSync(metadataPath), true);
+
+  const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+  assert.strictEqual(metadata.lang, 'mulda');
+  assert.strictEqual(metadata.backend, 'c');
+  assert.strictEqual(metadata.platform, 'linux-x64');
+  assert.strictEqual(metadata.compiler, 'gcc');
+  assert.strictEqual(metadata.artifactFile, artifactPath);
+  assert.strictEqual(typeof metadata.version, 'string');
+  assert.strictEqual(typeof metadata.generatedAt, 'string');
+}
+
 function testCE2EWhenGccAvailable() {
   const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
   if ((gcc.status || 1) !== 0) {
@@ -251,9 +279,6 @@ function testCE2EWhenGccAvailable() {
     return;
   }
 
-  const fs = require('fs');
-  const os = require('os');
-  const path = require('path');
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mulda-c-e2e-'));
   const cPath = path.join(tmpDir, 'demo.c');
   const binPath = path.join(tmpDir, 'demo.bin');
@@ -284,5 +309,6 @@ testRuntimeArgParsers();
 testTraceEventsPresentInBothBackends();
 testAssignUnknownVariableThrowsInVm();
 testCBackendGenerationAndArgs();
+testNativeArtifactMetadataSidecar();
 testCE2EWhenGccAvailable();
 console.log('tests passed');

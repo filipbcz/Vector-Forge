@@ -7,6 +7,7 @@ const { spawnSync } = require('child_process');
 const projectRoot = path.resolve(__dirname, '../..');
 const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
 const runner = path.join(projectRoot, 'runtime/src/run.js');
+const packageJson = require(path.join(projectRoot, 'package.json'));
 
 function printUsage() {
   console.error('Usage: mulda <compile|run|run-bc|run-c> [--target js|c] [--platform linux-x64|windows-x64] [--trace|--debug|--trace-json] <file.mulda>');
@@ -43,7 +44,17 @@ function compileFile(inputFile, options = {}) {
       return 1;
     }
     const nativeOut = path.join(distDir, `${baseName}-${toolchain.targetLabel}${toolchain.outputExt}`);
-    return compileCToNative(outputFile, nativeOut, { platform: options.platform });
+    const nativeStatus = compileCToNative(outputFile, nativeOut, { platform: options.platform });
+    if (nativeStatus !== 0) {
+      return nativeStatus;
+    }
+    writeNativeArtifactMetadata({
+      sourceFile: resolved,
+      cFile: outputFile,
+      artifactFile: nativeOut,
+      toolchain,
+      platform: options.platform
+    });
   }
 
   return 0;
@@ -74,6 +85,22 @@ function compileCToNative(entryCFile, outputFile, options = {}) {
 
   const compile = spawnSync(toolchain.cc, [entryCFile, '-std=c11', '-O2', '-o', outputFile], { stdio: 'inherit' });
   return compile.status || 0;
+}
+
+function writeNativeArtifactMetadata({ sourceFile, cFile, artifactFile, toolchain, platform }) {
+  const metadataPath = `${artifactFile}.metadata.json`;
+  const metadata = {
+    lang: 'mulda',
+    version: packageJson.version,
+    backend: 'c',
+    platform,
+    compiler: toolchain.cc,
+    generatedAt: new Date().toISOString(),
+    sourceFile,
+    cFile,
+    artifactFile
+  };
+  fs.writeFileSync(metadataPath, `${JSON.stringify(metadata, null, 2)}\n`, 'utf8');
 }
 
 function compileAndRunC(entryCFile, options = {}) {
@@ -244,4 +271,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain };
+module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata };

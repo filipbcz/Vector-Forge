@@ -78,6 +78,10 @@ npm run muldac -- --target c --platform windows-x64 examples/hello.mulda
 npm run mulda -- run-c examples/hello.mulda
 ```
 
+Při `--target c --platform ...` se po úspěšném překladu binárky vytvoří i metadata sidecar:
+- `dist/<name>-linux-x64.metadata.json`
+- `dist/<name>-windows-x64.exe.metadata.json`
+
 ## Security note
 
 VM i JS backend aktuálně vyhodnocují výrazy přes JavaScript evaluaci (`new Function`).

@@ -89,3 +89,10 @@
   - `dist/<name>-linux-x64`
   - `dist/<name>-windows-x64.exe`
 - Přidány regresní testy pro parse `--platform` a mapování toolchainu.
+
+## 2026-03-15 — v0.9 artifact metadata sidecar for C platform builds
+
+- Úspěšný build přes `muldac --target c --platform ...` nově generuje metadata sidecar JSON vedle artefaktu (`*.metadata.json`).
+- Metadata obsahují minimálně: `version`, `backend`, `platform`, `compiler`, `generatedAt`, `sourceFile`, `cFile`, `artifactFile`.
+- Tím je splněná dohledatelnost artefaktů (naming + metadata) pro v0.9 cross-compile milestone.
+- Přidán regresní test pro strukturu metadata souboru.
