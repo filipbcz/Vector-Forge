@@ -16,7 +16,7 @@ const requiredFiles = [
   'package.json',
   'README.md',
   'compiler/src/transpile.js',
-  'runtime/src/hantec.js',
+  'runtime/src/mulda.js',
   'runtime/src/run.js',
   'runtime/src/vm.js',
   'ide-web/index.html',

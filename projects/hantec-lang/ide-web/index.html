@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hantec IDE v0.4.1</title>
+  <title>Mulda IDE v0.6.0</title>
   <style>
     :root {
       --bg: #111;
@@ -79,12 +79,13 @@
   <div class="wrap">
     <div class="editor-wrap">
       <pre id="highlight" class="editor-layer" aria-hidden="true"></pre>
-      <textarea id="src" class="editor-layer" spellcheck="false"># Hantec v0.4.1 demo
-rekni Nazdar z Hantecu!
+      <textarea id="src" class="editor-layer" spellcheck="false"># Mulda v0.6.0 demo
+Hokna
+vyblij "Nazdar z Muldy!"
 dej x = 3
 opakuj 3
   kdyz x > 0
-    spocitej x
+    vyblij x
   konec
 konec</textarea>
     </div>
@@ -99,7 +100,7 @@ konec</textarea>
   </div>
 
   <script>
-    const KEYWORDS = ['dej', 'rekni', 'spocitej', 'kdyz', 'opakuj', 'konec', 'funkce', 'vrat'];
+    const KEYWORDS = ['Hokna', 'dej', 'vyblij', 'kdyz', 'opakuj', 'konec', 'funkce', 'vrat', 'joNeboHovno', 'jo', 'hovno', 'aKurva', 'bo', 'nechcu', 'rekni', 'spocitej'];
     const KEYWORD_RE = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'g');
 
     const runBtn = document.getElementById('runBtn');

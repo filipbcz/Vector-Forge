@@ -1,7 +1,0 @@
-# Hantec v0.5.1 demo
-rekni Nazdar z Hantecu!
-dej x = 21 + 21
-spocitej x
-spocitej minimum(10, "3", x)
-spocitej maximum(10, "3", x)
-spocitej obsahuje("mulda", "ul")

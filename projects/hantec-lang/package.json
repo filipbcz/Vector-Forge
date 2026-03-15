@@ -1,9 +1,12 @@
 {
-  "name": "hantec-lang",
-  "version": "0.5.3",
+  "name": "mulda-lang",
+  "version": "0.6.0",
   "private": true,
-  "description": "Scaffold for Hantec language + web IDE",
+  "description": "Scaffold for Mulda language + web IDE",
   "bin": {
+    "mulda": "runtime/src/mulda.js",
+    "muldac": "runtime/src/mulda.js",
+    "muldarun": "runtime/src/mulda.js",
     "hantec": "runtime/src/hantec.js"
   },
   "files": [
@@ -15,7 +18,7 @@
     "README.md"
   ],
   "scripts": {
-    "compile": "node compiler/src/transpile.js examples/hello.hantec dist/hello.js",
+    "compile": "node compiler/src/transpile.js examples/hello.mulda dist/hello.js",
     "run": "node runtime/src/run.js dist/hello.js",
     "run:bytecode": "node runtime/src/run.js dist/hello.bytecode.json",
     "demo": "npm run compile && npm run run",
@@ -24,6 +27,9 @@
     "test": "node tests/transpile.test.js && node tests/fixtures.test.js",
     "pack:check": "npm pack --dry-run --json > .pack-dry-run.json && node scripts/check-packaging.js .pack-dry-run.json",
     "prepublishOnly": "npm test && npm run pack:check",
+    "mulda": "node runtime/src/mulda.js",
+    "muldac": "node runtime/src/mulda.js compile",
+    "muldarun": "node runtime/src/mulda.js run",
     "hantec": "node runtime/src/hantec.js"
   }
 }

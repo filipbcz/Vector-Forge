@@ -26,7 +26,7 @@ const server = http.createServer((req, res) => {
         const tmpDir = path.join(projectRoot, 'dist');
         fs.mkdirSync(tmpDir, { recursive: true });
 
-        const inFile = path.join(tmpDir, 'web-input.hantec');
+        const inFile = path.join(tmpDir, 'web-input.mulda');
         const outFile = path.join(tmpDir, 'web-output.js');
         fs.writeFileSync(inFile, source, 'utf8');
 
@@ -53,5 +53,5 @@ const server = http.createServer((req, res) => {
 
 const port = process.env.PORT || 4173;
 server.listen(port, () => {
-  console.log(`Hantec IDE running on http://localhost:${port}`);
+  console.log(`Mulda IDE running on http://localhost:${port}`);
 });

@@ -18,7 +18,7 @@ Cíl: mít opakovatelný release flow bez náhodného publikování interních s
    - `npm run pack:check`
 4. Ověřit tarball ručně:
    - `npm pack`
-   - `tar -tf hantec-lang-<ver>.tgz`
+   - `tar -tf mulda-lang-<ver>.tgz`
 5. Publikovat:
    - `npm publish --access public`
 6. Vrátit `private` podle požadovaného režimu repozitáře.

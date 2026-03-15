@@ -1,14 +1,18 @@
-# PROJECT.md — hantec-lang (Mulda)
+# PROJECT.md — mulda-lang
 
 ## Cíl
-Experimentální jazyk (Mulda/Hantec) + web IDE pro rychlé iterace syntaxe a runtime.
+Jazyk **Mulda** + web IDE pro rychlé iterace syntaxe, compileru a runtime.
 
-## Aktuální scope (schválený směr)
-- Iterativně dodávat roadmapu po malých verzích
-- Každý běh: návrh → implementace → test/re-test → review (Sentinel/Hydra) → commit/push
+## Schválený naming spec
+- Název jazyka: Mulda
+- Přípona: `.mulda`
+- Start keyword: `Hokna`
+- Print: `vyblij`
+- Bool type: `joNeboHovno`
+- Bool literals: `jo` / `hovno`
+- Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `0.5.3`
-- Dodáno: základní řízení toku (`kdyz`, `opakuj`, `konec`) + funkce (`funkce`, `vrat`, `konec`) + rozšířená stdlib (`delka`, `cislo`, `text`, `minimum`, `maximum`, `obsahuje`)
-- Nově ve v0.5.3: debug/trace mód pro bytecode běh (`--trace`/`--debug` v CLI i runtime)
-- Otevřené body po v0.5.3: první ostrý npm publish (po rozhodnutí Filipa), další krok roadmapy v0.8 (cross-platform packaging)
+- Verze: `0.6.0`
+- Compiler/runtime/IDE/testy/docs přepnuté na Mulda slovník
+- Deprecated kompatibilita ponechána jen pro staré aliasy (`nacpi`,`program`,`rekni`,`spocitej`,`hantec` CLI)

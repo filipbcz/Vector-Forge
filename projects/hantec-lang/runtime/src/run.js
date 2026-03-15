@@ -45,7 +45,7 @@ function main() {
   const [entryFile] = parsed.positional;
 
   if (!entryFile) {
-    console.error('Usage: node runtime/src/run.js [--trace|--debug] <program.js|program.bytecode.json>');
+    console.error('Usage: node runtime/src/run.js [--trace|--debug] <program.js|program.bytecode.json>  # generated from .mulda');
     process.exit(1);
   }
 

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const { compileHantec } = require('../compiler/src/transpile');
+const { compileMulda } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
 
 function runJsAndCollectOutput(js) {
@@ -23,7 +23,7 @@ function runFixture(fixturePath) {
   const fixture = JSON.parse(raw);
   const { name, source, expectedOutput } = fixture;
 
-  const { js, bytecode } = compileHantec(source);
+  const { js, bytecode } = compileMulda(source);
 
   const jsLines = runJsAndCollectOutput(js);
   assert.deepStrictEqual(jsLines, expectedOutput, `${name}: JS backend output mismatch`);

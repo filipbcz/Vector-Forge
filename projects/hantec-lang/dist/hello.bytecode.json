@@ -1,38 +1,51 @@
 {
-  "version": "0.5.1",
-  "target": "hantec-vm",
+  "version": "0.6.0",
+  "target": "mulda-vm",
   "note": "bytecode prototype with recursive instruction blocks",
   "instructions": [
     {
-      "op": "PRINT_TEXT",
-      "text": "Nazdar z Hantecu!",
-      "line": 2
+      "op": "PRINT_EXPR",
+      "expr": "\"Nazdar z Muldy!\"",
+      "line": 3
     },
     {
       "op": "DECLARE",
       "name": "x",
-      "expr": "21 + 21",
-      "line": 3
-    },
-    {
-      "op": "PRINT_EXPR",
-      "expr": "x",
+      "expr": "3",
       "line": 4
     },
     {
       "op": "PRINT_EXPR",
-      "expr": "minimum(10, \"3\", x)",
+      "expr": "x",
       "line": 5
     },
     {
       "op": "PRINT_EXPR",
-      "expr": "maximum(10, \"3\", x)",
+      "expr": "minimum(10, \"3\", x)",
       "line": 6
     },
     {
       "op": "PRINT_EXPR",
-      "expr": "obsahuje(\"mulda\", \"ul\")",
+      "expr": "maximum(10, \"3\", x)",
       "line": 7
+    },
+    {
+      "op": "DECLARE",
+      "name": "jeTo",
+      "expr": "true",
+      "line": 8
+    },
+    {
+      "op": "IF",
+      "expr": "jeTo && ! false",
+      "body": [
+        {
+          "op": "PRINT_EXPR",
+          "expr": "obsahuje(\"mulda\", \"ul\")",
+          "line": 10
+        }
+      ],
+      "line": 9
     }
   ]
 }

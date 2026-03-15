@@ -1,42 +1,29 @@
-# hantec-lang
+# mulda-lang
 
-Experimentální jazyk **Hantec** + web IDE.
+Experimentální jazyk **Mulda** + web IDE.
 
-## Co je ve v0.5.3 (aktuální)
+## Schválená syntaxe (MVP)
 
-- `dej x = ...` pro deklaraci proměnných
-- `rekni ...` pro textový výstup
-- `spocitej ...` pro výpočet/vypsání výrazu
-- Blokové řízení toku:
-  - `kdyz <podminka>` ... `konec`
-  - `opakuj <pocet>` ... `konec`
-  - `funkce <name>(<params>)` ... `konec`
-- Návratová hodnota přes `vrat <expr>` uvnitř `funkce`
-- Základní stdlib funkce:
-  - `delka(x)` — délka stringu/pole, počet klíčů objektu
-  - `cislo(x)` — převod na číslo (s chybou při neplatné hodnotě)
-  - `text(x)` — převod na text
-  - `minimum(...x)` — minimum přes číselné argumenty (včetně číslo-like stringů)
-  - `maximum(...x)` — maximum přes číselné argumenty
-  - `obsahuje(container, needle)` — `true/false` pro substring, položku v poli nebo klíč v objektu
-- Chybové hlášky ze transpileru obsahují `line/col`
-- CLI příkaz `hantec run file.hantec` (JS runtime)
-- CLI příkaz `hantec run-bc file.hantec` (bytecode VM runtime)
-- Debug/trace režim pro bytecode běh: `hantec run-bc --trace file.hantec` (alias `--debug`)
-- Bytecode prototyp output `dist/*.bytecode.json` s instrukcemi pro interní VM
-- Web IDE (compile + run) + základní syntax highlighting (keywords/čísla/komentáře)
-- Publishing strategy v0.5.2: `npm run pack:check` + `prepublishOnly` gate (`npm test` + package dry-run validace)
-- Runtime trace loguje instrukce VM (`DECLARE`, `IF`, `REPEAT`, `CALL`, `RETURN`) do stderr bez změny stdout programu
+- souborová přípona: `.mulda`
+- start programu: `Hokna`
+- výpis: `vyblij <expr>`
+- bool typ: `joNeboHovno`
+- bool literály: `jo` / `hovno`
+- logické operátory: `aKurva` / `bo` / `nechcu`
 
-## Struktura
+### Dočasné deprecated aliasy (kompatibilita)
+- start: `nacpi`, `program`
+- print: `rekni`, `spocitej`
+- CLI: `hantec` (proxy na `mulda`)
 
-- `compiler/` — transpiler (`.hantec` -> `.js`) + bytecode placeholder
-- `runtime/` — Node runtime wrapper + `hantec` CLI
-- `ide-web/` — jednoduché webové IDE s editorem a výstupem
-- `docs/ROADMAP.md` — plán od v0.1 po v1.0
-- `docs/PUBLISHING.md` — release/publish checklist a quality gates
-- `tests/` — transpiler testy + fixture parity testy (JS backend vs bytecode VM)
-- `scripts/dev.sh` — lokální dev workflow
+## Co je ve v0.6.0
+
+- `dej x = ...` deklarace proměnných (volitelně `dej flag: joNeboHovno = jo`)
+- bloky `kdyz`, `opakuj`, `funkce`, `vrat`, `konec`
+- stdlib: `delka`, `cislo`, `text`, `minimum`, `maximum`, `obsahuje`
+- transpile do JS + bytecode (`mulda-vm`)
+- web IDE s highlightem Mulda keywordů
+- CLI: `mulda`, `muldac`, `muldarun`
 
 ## Quickstart
 
@@ -45,20 +32,21 @@ npm run demo
 npm test
 ```
 
-### CLI
+## CLI
 
 ```bash
-npm run hantec -- run examples/hello.hantec
-npm run hantec -- run-bc examples/hello.hantec
-npm run hantec -- run-bc --trace examples/hello.hantec
-# nebo po npm link:
-# hantec run examples/hello.hantec
-# hantec run-bc examples/hello.hantec
-# hantec run-bc --debug examples/hello.hantec
+npm run muldac -- examples/hello.mulda
+npm run muldarun -- examples/hello.mulda
+npm run mulda -- run-bc --trace examples/hello.mulda
+
+# po npm link
+# mulda run examples/hello.mulda
+# mulda run-bc --debug examples/hello.mulda
+# muldac examples/hello.mulda
+# muldarun --bc --trace examples/hello.mulda
 ```
 
-## Security note (v0.5 VM prototype)
+## Security note
 
 VM i JS backend aktuálně vyhodnocují výrazy přes JavaScript evaluaci (`new Function`).
-To znamená, že **Hantec zdroj ber jako trusted input** (stejně jako vlastní JS skript),
-a nespouštěj neověřený cizí kód na hostu bez sandboxu.
+Mulda zdroj tedy ber jako trusted input a nespouštěj neověřený cizí kód bez sandboxu.
