@@ -51,3 +51,11 @@
 - V JS backendu se trace emituje až po evaluaci deklarace, aby bylo možné bezpečně logovat skutečnou hodnotu.
 - VM backend sjednocen na stejný detail formát, takže IDE variables panel zobrazuje konzistentní snapshot napříč runtime režimy.
 - Přidány regresní testy, které ověřují `DECLARE detail === "x=1"` pro JS i VM trace.
+
+## 2026-03-15 — Assignment snapshots beyond declarations (v0.7.3)
+
+- Parser/compiler přidal statement assignmentu `x = expr` s AST node `assign`.
+- JS backend emituje runtime assignment a následný trace event `ASSIGN` s detailem `name=value`.
+- Bytecode + VM přidaly opcode `ASSIGN`; assignment aktualizuje existující binding ve scope chainu a při chybějící proměnné vrací explicitní runtime error.
+- IDE variables panel nově skládá snapshot jen z `DECLARE` + `ASSIGN`, takže změny hodnot po deklaraci jsou vidět i při step replay.
+- Verze package/compiler/bytecode/IDE markerů zvýšena na `v0.7.3`.

@@ -34,8 +34,14 @@
 - [x] `DECLARE` trace event now carries `name=value` detail in VM backend
 - [x] IDE Variables panel can consume real value snapshots without fallback when declaration trace is present
 
+## v0.7.3 ✅ Assignment snapshots beyond declarations
+- [x] Parser supports assignment statements `x = expr` with validation for identifier and expression
+- [x] JS backend emits `ASSIGN` trace with `name=value` after assignment evaluation
+- [x] VM bytecode adds `ASSIGN` opcode with clear error for unknown variables
+- [x] IDE Variables panel updates snapshots from `ASSIGN` events as values change
+
 ## Next
 - True runtime pause/continue hooks v interpreteru (bez replay emulace)
-- Rich variables snapshots directly from runtime scopes (beyond declarations)
+- Rich variables snapshots directly from runtime scopes (nested structures / scope drilldown)
 - LSP prototype pro editor integraci
 - Cross-platform binary/runtime packaging

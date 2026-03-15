@@ -7,9 +7,41 @@ class ReturnSignal {
   }
 }
 
+function collectScope(scope) {
+  const merged = {};
+  const chain = [];
+  let current = scope;
+
+  while (current && current !== Object.prototype) {
+    chain.push(current);
+    current = Object.getPrototypeOf(current);
+  }
+
+  for (let i = chain.length - 1; i >= 0; i -= 1) {
+    Object.assign(merged, chain[i]);
+  }
+
+  return merged;
+}
+
+function assignScopeBinding(scope, name, value) {
+  let current = scope;
+
+  while (current && current !== Object.prototype) {
+    if (Object.prototype.hasOwnProperty.call(current, name)) {
+      current[name] = value;
+      return value;
+    }
+    current = Object.getPrototypeOf(current);
+  }
+
+  throw new Error(`Assignment failed: variable "${name}" is not declared`);
+}
+
 function evaluateExpr(expr, scope, helpers) {
-  const names = Object.keys(scope);
-  const values = Object.values(scope);
+  const visibleScope = collectScope(scope);
+  const names = Object.keys(visibleScope);
+  const values = Object.values(visibleScope);
   const helperNames = Object.keys(helpers);
   const helperValues = Object.values(helpers);
   // eslint-disable-next-line no-new-func
@@ -96,6 +128,20 @@ function executeInstructions(instructions, scope, helpers, stdout, trace, depth 
           line: ins.line,
           depth,
           detail: `${ins.name}=${JSON.stringify(scope[ins.name])}`
+        });
+      }
+      continue;
+    }
+
+    if (ins.op === 'ASSIGN') {
+      const value = evaluateExpr(ins.expr, scope, helpers);
+      assignScopeBinding(scope, ins.name, value);
+      if (trace) {
+        trace({
+          op: ins.op,
+          line: ins.line,
+          depth,
+          detail: `${ins.name}=${JSON.stringify(value)}`
         });
       }
       continue;

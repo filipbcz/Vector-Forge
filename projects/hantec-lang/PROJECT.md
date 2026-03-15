@@ -13,7 +13,8 @@ Jazyk **Mulda** + web IDE pro rychlé iterace syntaxe, compileru a runtime.
 - Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `0.7.0`
+- Verze: `0.7.3`
 - IDE má moderní debug UI základy (toolbar + breakpoints + stack/variables panely)
 - Parser primárně podporuje `dyz` + `funkcicka`
+- Variables panel nově sleduje i assignment snapshoty (`ASSIGN`), ne jen deklarace
 - Deprecated kompatibilita ponechána pro staré aliasy (`kdyz`,`funkce`,`nacpi`,`program`,`rekni`,`spocitej`,`hantec` CLI)

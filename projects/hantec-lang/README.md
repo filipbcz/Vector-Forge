@@ -20,7 +20,7 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.7.1
+## Co je ve v0.7.3
 
 - Modernizované web IDE (single-page layout):
   - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
@@ -34,7 +34,9 @@ Experimentální jazyk **Mulda** + web IDE.
 - Breakpointy klikem v gutteru (in-memory per session)
 - Trace-based stepping MVP nad `--trace-json` eventy
 - Stack trace panel parsuje trace události
-- Variables/watch panel zobrazuje snapshot z event detailu, fallback na poslední event detail
+- Variables/watch panel zobrazuje snapshot z `DECLARE` + `ASSIGN` event detailu, takže reaguje i na pozdější změny proměnných
+- Jazyk nově podporuje assignment statement `x = expr` vedle deklarací `dej x = expr`
+- Bytecode VM vrací explicitní runtime chybu při assignmentu do neexistující proměnné
 - Zachován compile/run flow přes `dist/` jako v předchozí verzi
 
 ## Quickstart
