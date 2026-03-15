@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { compileFile, resolveCToolchain } = require('../runtime/src/mulda');
+const { compileFile, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata } = require('../runtime/src/mulda');
 
 const projectRoot = path.resolve(__dirname, '..');
 const packageJson = require(path.join(projectRoot, 'package.json'));
@@ -37,6 +37,13 @@ function main() {
   const builds = [];
   let hasFailure = false;
 
+  const transpileStatus = compileFile(sourceFile, { target: 'c' });
+  if (transpileStatus !== 0) {
+    process.exit(transpileStatus);
+  }
+
+  const cSource = path.join(distDir, `${baseName}.c`);
+
   for (const platform of platforms) {
     const toolchain = resolveCToolchain(platform);
     const artifactPath = path.join(distDir, `${baseName}-${platform}${toolchain.outputExt}`);
@@ -47,7 +54,7 @@ function main() {
       status: 'ok'
     };
 
-    const status = compileFile(sourceFile, { target: 'c', platform });
+    const status = compileCToNative(cSource, artifactPath, { platform });
     if (status !== 0) {
       hasFailure = true;
       result.status = 'failed';
@@ -58,6 +65,14 @@ function main() {
       continue;
     }
 
+    writeNativeArtifactMetadata({
+      sourceFile,
+      cFile: cSource,
+      artifactFile: artifactPath,
+      toolchain,
+      platform
+    });
+
     result.sha256 = sha256File(artifactPath);
     const metadataPath = `${artifactPath}.metadata.json`;
     if (fs.existsSync(metadataPath)) {
@@ -67,8 +82,6 @@ function main() {
 
     builds.push(result);
   }
-
-  const cSource = path.join(distDir, `${baseName}.c`);
   const manifest = {
     lang: 'mulda',
     version: packageJson.version,

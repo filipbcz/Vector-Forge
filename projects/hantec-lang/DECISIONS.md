@@ -188,3 +188,13 @@
   - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `RELEASE_KEEP_BUNDLES=2 bash scripts/release-rc.sh` PASS + očekávané prune logy.
   - Sentinel: změna je izolovaná na release skript (operational hygiene), bez dopadu na parser/compiler/runtime API.
   - Hydra: nízké riziko; mazání je scoped jen na verzi `rc-<version>-*`, bez globálního čistění mimo release bundles.
+
+## 2026-03-15 — C cross-build stability: single transpile in orchestrator (RC.2)
+
+- `scripts/build-cross-c.js` byl upraven tak, aby pro `linux-x64` + `windows-x64` dělal transpile do C pouze jednou (`compileFile(..., { target: 'c' })`) a pak jen kompiloval nativní targety přes `compileCToNative`.
+- Sidecar metadata (`*.metadata.json`) se nově při cross-build kroku zapisují explicitně voláním `writeNativeArtifactMetadata`, takže auditní contract zůstává zachovaný.
+- Přínos: menší šum v build logu, méně redundantních kroků a stabilnější release orchestrace bez změny veřejného CLI contractu.
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `RELEASE_KEEP_BUNDLES=2 bash scripts/release-rc.sh` PASS.
+  - Sentinel: změna je malá, lokalizovaná do build orchestrace; bez dopadu na parser/runtime semantics.
+  - Hydra: beze změny attack surface; žádná nová privilegia ani externí integrace, pouze determinističtější interní build flow.
