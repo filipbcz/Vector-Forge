@@ -20,7 +20,7 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.8.0
+## Co je ve v0.9.0
 
 - Modernizované web IDE (single-page layout):
   - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
@@ -40,6 +40,10 @@ Experimentální jazyk **Mulda** + web IDE.
 - Zachován compile/run flow přes `dist/` jako v předchozí verzi
 - Nový C backend MVP (`muldac --target c`) + běh přes `mulda run-c`
 - C backend emituje základní trace eventy (`DECLARE`, `ASSIGN`, `PRINT_EXPR`, `IF`, `REPEAT`, `FUNCTION`, `RETURN`) přes stderr při `MULDA_TRACE=1`
+- Nová jednotná cross-build orchestrace: `npm run build:c:cross -- <soubor.mulda>`
+  - z jednoho `.mulda` zdroje vyrobí Linux (`gcc`) i Windows (`mingw-w64`) artefakt
+  - vygeneruje release manifest s checksums a platform mapou (`dist/<name>.release-manifest.json`)
+  - při chybějícím toolchainu vrací jasný status `[TOOLCHAIN_MISSING]` + instalační doporučení
 
 ## Quickstart
 
@@ -76,11 +80,26 @@ npm run muldac -- --target c examples/hello.mulda
 npm run muldac -- --target c --platform linux-x64 examples/hello.mulda
 npm run muldac -- --target c --platform windows-x64 examples/hello.mulda
 npm run mulda -- run-c examples/hello.mulda
+npm run build:c:cross -- examples/hello.mulda
 ```
 
 Při `--target c --platform ...` se po úspěšném překladu binárky vytvoří i metadata sidecar:
 - `dist/<name>-linux-x64.metadata.json`
 - `dist/<name>-windows-x64.exe.metadata.json`
+
+## Jak cross-compile funguje
+
+`npm run build:c:cross -- examples/hello.mulda` dělá 3 kroky:
+
+1. Přeloží `.mulda` do `dist/<name>.c`.
+2. Spustí dvě C kompilace nad stejným C výstupem:
+   - `linux-x64` přes `gcc` → `dist/<name>-linux-x64`
+   - `windows-x64` přes `x86_64-w64-mingw32-gcc` → `dist/<name>-windows-x64.exe`
+3. Vytvoří metadata:
+   - sidecar `*.metadata.json` pro každý úspěšný target
+   - release manifest `dist/<name>.release-manifest.json` s platform mapou + SHA256 checksums.
+
+Pokud některý compiler chybí, build vrátí `[TOOLCHAIN_MISSING]` a doporučený instalační příkaz.
 
 ## Security note
 

@@ -1,7 +1,7 @@
 # Mulda Language Roadmap
 
 ## Aktuální stav
-- Stabilní verze: **v0.8.0**
+- Stabilní verze: **v0.9.0**
 - Směr: **Pascal-first syntax**, primární runtime/backend: **C**
 - JS backend zůstává zachovaný jako **dev/debug path** (rychlé iterace, trace, IDE experimenty)
 
@@ -24,6 +24,8 @@ Cíl: standardizovat build pipeline pro nativní výstupy na Linux a Windows.
 - CI ověří, že oba targety se úspěšně zkompilují z referenčních fixture.
 - Artefakty buildů jsou verzované a dohledatelné (naming + metadata).
 - Dokumentace má stručný cross-compile návod včetně závislostí.
+
+**Status v0.9:** ✅ Implementováno (sjednocený cross-build command, CI workflow, artifact manifest+checksums).
 
 ## v1.0-rc — Release candidate
 Cíl: stabilní kandidát na 1.0 s produkčně použitelným toolchainem.

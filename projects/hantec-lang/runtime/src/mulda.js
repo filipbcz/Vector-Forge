@@ -79,7 +79,10 @@ function compileCToNative(entryCFile, outputFile, options = {}) {
 
   const ccProbe = spawnSync(toolchain.cc, ['--version'], { stdio: 'ignore' });
   if ((ccProbe.status || 1) !== 0) {
-    console.error(`${toolchain.cc} not found. Install toolchain for ${toolchain.targetLabel}.`);
+    const recommendation = toolchain.targetLabel === 'linux-x64'
+      ? 'Install GCC (Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y build-essential).'
+      : 'Install MinGW-w64 (Ubuntu/Debian: sudo apt-get update && sudo apt-get install -y mingw-w64).';
+    console.error(`[TOOLCHAIN_MISSING] ${toolchain.cc} for ${toolchain.targetLabel}. ${recommendation}`);
     return 1;
   }
 

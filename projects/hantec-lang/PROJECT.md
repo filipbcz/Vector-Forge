@@ -16,11 +16,13 @@ JS backend zůstává zachován jako **dev/debug path**.
 - Logic ops: `aKurva` / `bo` / `nechcu`
 
 ## Stav
-- Verze: `0.8.0`
+- Verze: `0.9.0`
 - IDE má moderní debug UI základy (toolbar + breakpoints + stack/variables panely)
 - Parser primárně podporuje `dyz` + `funkcicka`
 - Variables panel sleduje deklarace i assignment snapshoty (`DECLARE` + `ASSIGN`)
 - C backend MVP je dostupný přes `muldac --target c` a `mulda run-c`
+- Cross-compile orchestrace je dostupná přes `npm run build:c:cross -- <file.mulda>` (linux-x64 + windows-x64)
+- Build metadata pro release: sidecar `*.metadata.json` + `*.release-manifest.json` (checksums + platform map)
 - Deprecated kompatibilita ponechána pro staré aliasy (`kdyz`,`funkce`,`nacpi`,`program`,`rekni`,`spocitej`,`hantec` CLI)
 
 ## Milníky (pivot roadmap)

@@ -96,3 +96,16 @@
 - Metadata obsahují minimálně: `version`, `backend`, `platform`, `compiler`, `generatedAt`, `sourceFile`, `cFile`, `artifactFile`.
 - Tím je splněná dohledatelnost artefaktů (naming + metadata) pro v0.9 cross-compile milestone.
 - Přidán regresní test pro strukturu metadata souboru.
+
+## 2026-03-15 — v0.9 release: unified cross-build command + CI artifacts manifest
+
+- Přidán jednotný build command `npm run build:c:cross -- <file.mulda>`, který z jednoho zdroje postaví `linux-x64` i `windows-x64` artefakt (pokud je toolchain dostupný).
+- Chybějící toolchain vrací explicitní status `[TOOLCHAIN_MISSING]` a instalační doporučení:
+  - GCC: `build-essential`
+  - MinGW-w64: `mingw-w64`
+- Build orchestrátor generuje release manifest `dist/<name>.release-manifest.json` s:
+  - platform map (`linux-x64`, `windows-x64`)
+  - stavem každého targetu
+  - SHA256 checksumy artefaktů a metadata sidecar souborů
+- Přidán GitHub Actions workflow (`.github/workflows/mulda-c-cross.yml`) pro Linux runner + MinGW cross-compile a upload C artefaktů.
+- Verze projektu zvýšena na `0.9.0`.
