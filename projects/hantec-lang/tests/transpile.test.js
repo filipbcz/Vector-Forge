@@ -247,6 +247,16 @@ function testCBackendGenerationAndArgs() {
   assert.strictEqual(resolveCToolchain('darwin-arm64'), null);
 }
 
+function testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma() {
+  const source = [
+    'Hokna',
+    'vyblij obsahuje("a\\\",b", "b")'
+  ].join('\n');
+
+  const { c } = compileMulda(source);
+  assert(c.includes('__mulda_obsahuje("a\\\",b", "b")'));
+}
+
 function testNativeArtifactMetadataSidecar() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mulda-meta-'));
   const artifactPath = path.join(tmpDir, 'hello-linux-x64');
@@ -371,6 +381,7 @@ testRuntimeArgParsers();
 testTraceEventsPresentInBothBackends();
 testAssignUnknownVariableThrowsInVm();
 testCBackendGenerationAndArgs();
+testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma();
 testNativeArtifactMetadataSidecar();
 testCrossBuildManifestScript();
 testCTraceSnapshotsWhenGccAvailable();

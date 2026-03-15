@@ -47,3 +47,5 @@
 - Tvrdé pravidlo od Filipa pro projekt Mulda: prioritně a dlouhodobě podporovat pouze C větev; JS/VM větev udržovat jen v nezbytném kompatibilním režimu (bez nových feature).
 - Mulda v0.9 groundwork: `muldac`/`mulda compile` podporuje `--platform linux-x64|windows-x64` pro C target a mapuje toolchain (`gcc` / `x86_64-w64-mingw32-gcc`) pro nativní artefakty.
 - GitHub autentizace pro git operace je trvale přes PAT (`x-access-token`), nikdy username+heslo; u Google účtu je token povinný a při auth chybě na `push` se jako první ověřuje token flow.
+- Trvalé pravidlo push workflow: vždy používat PAT (`x-access-token`) a před delšími běhy ověřit autentizaci přes `git push --dry-run origin main`; pokud dry-run selže, release checkpoint se okamžitě označí jako BLOKUJE a nejdřív se opraví credentials; Astra toto pravidlo povinně vynucuje, aby se neopakovaly falešné blokace push.
+- Mulda v1.0.0-rc.2 (C větev): opraven edge-case parser argumentů v C normalizaci volání (`splitCallArgs`), aby escaped quote + čárka uvnitř string literálu nerozbila mapování builtinů (`obsahuje/minimum/maximum`); kryto regresním testem a cross-build gate PASS.

@@ -151,3 +151,12 @@
 - True runtime pause/continue orchestrace procesu (live SIGSTOP/SIGCONT debug session) byla vyhodnocena jako **non-blocking** pro RC: v aktuální architektuře by vyžadovala asynchronní debug API/session manager nad místo současného `spawnSync` flow.
 - Sentinel gate (rc.2): maintainability OK — změny izolované na trace contract + IDE stop-map, pokryté regresním testem.
 - Hydra gate (rc.2): risk přijatelný — žádná nová privilegia ani externí attack surface; debug data jsou deterministická a auditovatelná přes JSON trace.
+
+## 2026-03-15 — C backend parser hardening: escaped-string arg split fix
+
+- Opraven bug ve `splitCallArgs` (C backend expression normalization), kde escape detekce uvnitř stringu porovnávala dvouznakový token `"\\\\"` místo správného jednoznakového backslashe `"\\"`.
+- Dopad: volání builtinů (`obsahuje`, `minimum`, `maximum`) se string argumenty obsahujícími escaped quote + čárku se nyní správně parsují a mapují na C helper funkce.
+- Přidán regresní test `testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma`.
+- Forge test gate: `npm test` PASS + `npm run build:c:cross -- examples/hello.mulda` PASS (linux-x64 + windows-x64).
+- Sentinel gate: změna je minimální, izolovaná a krytá testem; bez dopadu na JS/VM feature set.
+- Hydra gate: žádná nová attack surface; fix snižuje riziko špatně přeloženého výrazu při edge-case string literálech.
