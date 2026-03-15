@@ -4,7 +4,7 @@ const { spawnSync } = require('child_process');
 const { transpileMulda, compileMulda } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
 const { parseArgs } = require('../runtime/src/run');
-const { parseCommandArgs } = require('../runtime/src/mulda');
+const { parseCommandArgs, resolveCToolchain } = require('../runtime/src/mulda');
 
 function testVariablesAndPrint() {
   const source = [
@@ -231,12 +231,17 @@ function testCBackendGenerationAndArgs() {
   assert(c.includes('__mulda_trace("ASSIGN"'));
   assert(c.includes('if ((x > 2)) {'));
 
-  const parsedCompile = parseCommandArgs(['--target', 'c', 'examples/hello.mulda']);
+  const parsedCompile = parseCommandArgs(['--target', 'c', '--platform', 'windows-x64', 'examples/hello.mulda']);
   assert.strictEqual(parsedCompile.options.target, 'c');
+  assert.strictEqual(parsedCompile.options.platform, 'windows-x64');
 
   const parsedRun = parseCommandArgs(['--c', '--trace-json', 'examples/hello.mulda']);
   assert.strictEqual(parsedRun.options.cBackend, true);
   assert.strictEqual(parsedRun.options.traceFormat, 'json');
+
+  assert.deepStrictEqual(resolveCToolchain('linux-x64'), { cc: 'gcc', outputExt: '', targetLabel: 'linux-x64' });
+  assert.deepStrictEqual(resolveCToolchain('windows-x64'), { cc: 'x86_64-w64-mingw32-gcc', outputExt: '.exe', targetLabel: 'windows-x64' });
+  assert.strictEqual(resolveCToolchain('darwin-arm64'), null);
 }
 
 function testCE2EWhenGccAvailable() {

@@ -78,3 +78,14 @@
   - `mulda run-c <file.mulda>` / `muldarun --c <file.mulda>`
 - C backend emituje základní trace eventy přes stderr (text/json podle `MULDA_TRACE_FORMAT`) s backend markerem `c`.
 - Přidány testy pro C generator + CLI parsing a gcc E2E smoke test (pokud je gcc dostupné).
+
+## 2026-03-15 — v0.9 groundwork: explicit C platform targeting in CLI
+
+- `muldac`/`mulda compile` nově přijímají `--platform linux-x64|windows-x64` pro C target.
+- C compile flow je rozdělený na toolchain resolver:
+  - `linux-x64` -> `gcc`
+  - `windows-x64` -> `x86_64-w64-mingw32-gcc`
+- Při `--target c --platform ...` se kromě `dist/<name>.c` pokusí vytvořit i nativní artefakt:
+  - `dist/<name>-linux-x64`
+  - `dist/<name>-windows-x64.exe`
+- Přidány regresní testy pro parse `--platform` a mapování toolchainu.

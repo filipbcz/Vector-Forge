@@ -9,8 +9,8 @@ const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
 const runner = path.join(projectRoot, 'runtime/src/run.js');
 
 function printUsage() {
-  console.error('Usage: mulda <compile|run|run-bc|run-c> [--target js|c] [--trace|--debug|--trace-json] <file.mulda>');
-  console.error('Aliases: muldac [--target js|c] <file.mulda> ; muldarun [--trace|--debug|--trace-json] <file.mulda> [--bc|--c]');
+  console.error('Usage: mulda <compile|run|run-bc|run-c> [--target js|c] [--platform linux-x64|windows-x64] [--trace|--debug|--trace-json] <file.mulda>');
+  console.error('Aliases: muldac [--target js|c] [--platform linux-x64|windows-x64] <file.mulda> ; muldarun [--trace|--debug|--trace-json] <file.mulda> [--bc|--c]');
 }
 
 function compileFile(inputFile, options = {}) {
@@ -28,23 +28,58 @@ function compileFile(inputFile, options = {}) {
 
   const distDir = path.join(projectRoot, 'dist');
   fs.mkdirSync(distDir, { recursive: true });
+  const baseName = path.basename(resolved, '.mulda');
   const ext = target === 'c' ? '.c' : '.js';
-  const outputFile = path.join(distDir, `${path.basename(resolved, '.mulda')}${ext}`);
+  const outputFile = path.join(distDir, `${baseName}${ext}`);
 
   const t = spawnSync(process.execPath, [transpiler, resolved, outputFile], { stdio: 'inherit' });
-  return t.status || 0;
+  const status = t.status || 0;
+  if (status !== 0) return status;
+
+  if (target === 'c' && options.platform) {
+    const toolchain = resolveCToolchain(options.platform);
+    if (!toolchain) {
+      console.error(`Unsupported platform: ${options.platform}`);
+      return 1;
+    }
+    const nativeOut = path.join(distDir, `${baseName}-${toolchain.targetLabel}${toolchain.outputExt}`);
+    return compileCToNative(outputFile, nativeOut, { platform: options.platform });
+  }
+
+  return 0;
 }
 
-function compileAndRunC(entryCFile, options = {}) {
-  const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
-  if (gcc.status !== 0) {
-    console.error('gcc not found. Install gcc to run C backend output.');
+function resolveCToolchain(platform = 'linux-x64') {
+  if (platform === 'linux-x64') {
+    return { cc: 'gcc', outputExt: '', targetLabel: 'linux-x64' };
+  }
+  if (platform === 'windows-x64') {
+    return { cc: 'x86_64-w64-mingw32-gcc', outputExt: '.exe', targetLabel: 'windows-x64' };
+  }
+  return null;
+}
+
+function compileCToNative(entryCFile, outputFile, options = {}) {
+  const toolchain = resolveCToolchain(options.platform || 'linux-x64');
+  if (!toolchain) {
+    console.error(`Unsupported platform: ${options.platform}`);
     return 1;
   }
 
+  const ccProbe = spawnSync(toolchain.cc, ['--version'], { stdio: 'ignore' });
+  if ((ccProbe.status || 1) !== 0) {
+    console.error(`${toolchain.cc} not found. Install toolchain for ${toolchain.targetLabel}.`);
+    return 1;
+  }
+
+  const compile = spawnSync(toolchain.cc, [entryCFile, '-std=c11', '-O2', '-o', outputFile], { stdio: 'inherit' });
+  return compile.status || 0;
+}
+
+function compileAndRunC(entryCFile, options = {}) {
   const outBin = path.join(os.tmpdir(), `mulda-${Date.now()}-${Math.random().toString(16).slice(2)}`);
-  const compile = spawnSync('gcc', [entryCFile, '-std=c11', '-O2', '-o', outBin], { stdio: 'inherit' });
-  if ((compile.status || 0) !== 0) return compile.status || 1;
+  const compileStatus = compileCToNative(entryCFile, outBin, { platform: 'linux-x64' });
+  if (compileStatus !== 0) return compileStatus;
 
   const run = spawnSync(outBin, {
     stdio: 'inherit',
@@ -94,7 +129,7 @@ function runFile(inputFile, mode = 'js', options = {}) {
 
 function parseCommandArgs(argv) {
   const args = [...argv];
-  const options = { trace: false, traceFormat: 'text', bytecode: false, cBackend: false, target: 'js' };
+  const options = { trace: false, traceFormat: 'text', bytecode: false, cBackend: false, target: 'js', platform: null };
 
   while (args[0] && args[0].startsWith('--')) {
     const flag = args.shift();
@@ -122,6 +157,15 @@ function parseCommandArgs(argv) {
       options.target = value;
       continue;
     }
+    if (flag === '--platform') {
+      const value = args.shift();
+      if (!value) throw new Error('--platform requires value: linux-x64 or windows-x64');
+      if (value !== 'linux-x64' && value !== 'windows-x64') {
+        throw new Error(`Unsupported platform: ${value}`);
+      }
+      options.platform = value;
+      continue;
+    }
     throw new Error(`Unknown flag: ${flag}`);
   }
 
@@ -139,7 +183,7 @@ function main() {
         printUsage();
         process.exit(1);
       }
-      process.exit(compileFile(parsed.inputFile, { target: parsed.options.target }));
+      process.exit(compileFile(parsed.inputFile, { target: parsed.options.target, platform: parsed.options.platform }));
     }
 
     if (invokedAs === 'muldarun') {
@@ -158,7 +202,7 @@ function main() {
         printUsage();
         process.exit(1);
       }
-      process.exit(compileFile(parsed.inputFile, { target: parsed.options.target }));
+      process.exit(compileFile(parsed.inputFile, { target: parsed.options.target, platform: parsed.options.platform }));
     }
 
     if (commandOrFile === 'run') {
@@ -200,4 +244,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC };
+module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain };

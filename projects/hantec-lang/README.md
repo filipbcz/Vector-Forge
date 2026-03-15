@@ -73,6 +73,8 @@ npm run muldarun -- examples/hello.mulda
 npm run mulda -- run-bc --trace examples/hello.mulda
 npm run mulda -- run --trace-json examples/hello.mulda
 npm run muldac -- --target c examples/hello.mulda
+npm run muldac -- --target c --platform linux-x64 examples/hello.mulda
+npm run muldac -- --target c --platform windows-x64 examples/hello.mulda
 npm run mulda -- run-c examples/hello.mulda
 ```
 

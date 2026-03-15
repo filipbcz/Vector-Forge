@@ -44,3 +44,6 @@
 - Mulda/Hantec v0.5.2 uzavřel publishing strategii: whitelist `files`, `pack:check` dry-run validace balíčku a `prepublishOnly` gate (`npm test` + packaging check) před publikací.
 - Mulda v0.6.2 zavedla entry-point guardrails: parser vyžaduje start keyword (`Hokna` nebo legacy alias) jako první non-comment statement a odmítá duplicitní/pozdní start token.
 - Mulda v0.8.0 doručila C backend MVP: `muldac --target c` generuje C, `mulda run-c` kompiluje a spouští přes gcc, s baseline trace eventy i pro C cestu.
+- Tvrdé pravidlo od Filipa pro projekt Mulda: prioritně a dlouhodobě podporovat pouze C větev; JS/VM větev udržovat jen v nezbytném kompatibilním režimu (bez nových feature).
+- Mulda v0.9 groundwork: `muldac`/`mulda compile` podporuje `--platform linux-x64|windows-x64` pro C target a mapuje toolchain (`gcc` / `x86_64-w64-mingw32-gcc`) pro nativní artefakty.
+- GitHub autentizace pro git operace je trvale přes PAT (`x-access-token`), nikdy username+heslo; u Google účtu je token povinný a při auth chybě na `push` se jako první ověřuje token flow.
