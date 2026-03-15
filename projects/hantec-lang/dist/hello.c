@@ -79,6 +79,10 @@ static void __mulda_print_num(double value) {
   else printf("%g\n", value);
 }
 
+static void __mulda_print_bool(bool value) {
+  printf("%s\n", value ? "true" : "false");
+}
+
 int main(void) {
   __mulda_trace("PRINT_EXPR", 3, "");
   printf("%s\n", "Nazdar z Muldy!");
@@ -95,7 +99,7 @@ int main(void) {
   __mulda_trace("IF", 9, "");
   if ((jeTo && ! false)) {
     __mulda_trace("PRINT_EXPR", 10, "");
-    __mulda_print_num((double)(__mulda_obsahuje("mulda", "ul")));
+    __mulda_print_bool((bool)(__mulda_obsahuje("mulda", "ul")));
   }
   return 0;
 }

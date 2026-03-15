@@ -1,5 +1,13 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.2 artifact refresh: bool print parity in committed dist outputs
+
+- Spuštěn stabilizační cyklus čistě na C větvi (bez nových JS/VM feature změn): `npm test` + `npm run build:c:cross -- examples/hello.mulda`.
+- Regenerované `dist/hello.c` + linux/windows binárky nyní odpovídají aktuálnímu C emitteru (`__mulda_print_bool` pro bool `vyblij`), takže committed reference artefakty nejsou pozadu vůči zdrojovému compileru.
+- Aktualizovány sidecar metadata a release manifest (`generatedAt`, SHA256).
+- Sentinel gate: maintainability OK — změna je artifact-refresh bez zásahu do parser/compiler API.
+- Hydra gate: security posture OK — žádná nová privilegia ani attack surface; pouze rebuild + checksum refresh.
+
 ## 2026-03-15 — C runtime parity hardening: bool print semantics (RC.2)
 
 - C backend už při `vyblij <bool-expr>` netiskne `1/0`, ale `true/false` přes nový helper `__mulda_print_bool`.
