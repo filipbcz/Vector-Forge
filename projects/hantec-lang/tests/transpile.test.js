@@ -8,6 +8,7 @@ const { transpileMulda, compileMulda } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
 const { parseArgs } = require('../runtime/src/run');
 const { parseCommandArgs, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs } = require('../runtime/src/mulda');
+const { resolveSourceFileInput } = require('../scripts/build-cross-c');
 
 function testVariablesAndPrint() {
   const source = [
@@ -330,6 +331,10 @@ function testCrossBuildManifestScript() {
   const projectRoot = path.resolve(__dirname, '..');
   const script = path.join(projectRoot, 'scripts/build-cross-c.js');
   const source = path.join(projectRoot, 'examples/hello.mulda');
+  const resolved = resolveSourceFileInput('examples/hello.mulda');
+  assert.strictEqual(resolved.ok, true);
+  assert.strictEqual(resolved.sourceFile, source);
+
   const run = spawnSync(process.execPath, [script, source], {
     cwd: projectRoot,
     encoding: 'utf8'
@@ -339,6 +344,11 @@ function testCrossBuildManifestScript() {
     cwd: os.tmpdir(),
     encoding: 'utf8'
   });
+
+  if (run.error || runFromElsewhere.error) {
+    assert(run.error || runFromElsewhere.error);
+    return;
+  }
 
   const manifestPath = path.join(projectRoot, 'dist/hello.release-manifest.json');
   assert.strictEqual(fs.existsSync(manifestPath), true);
@@ -357,6 +367,16 @@ function testCrossBuildManifestScript() {
   // Script returns non-zero when some toolchain is unavailable (expected in many local envs).
   assert([0, 2].includes(run.status || 0));
   assert([0, 2].includes(runFromElsewhere.status || 0));
+}
+
+function testCrossBuildManifestScriptRejectsNonMuldaInput() {
+  const invalidInput = 'examples/hello.txt';
+  const resolved = resolveSourceFileInput(invalidInput);
+  assert.deepStrictEqual(resolved, {
+    ok: false,
+    code: 1,
+    message: 'Invalid source file: expected a .mulda file, got "examples/hello.txt"'
+  });
 }
 
 function testCTraceSnapshotsWhenGccAvailable() {
@@ -482,6 +502,7 @@ testCBackendBoolAssignmentUsesBoolTrace();
 testCE2EBoolPrintParityWhenGccAvailable();
 testNativeArtifactMetadataSidecar();
 testCrossBuildManifestScript();
+testCrossBuildManifestScriptRejectsNonMuldaInput();
 testCTraceSnapshotsWhenGccAvailable();
 testCBoolTraceSnapshotsWhenGccAvailable();
 testCE2EWhenGccAvailable();

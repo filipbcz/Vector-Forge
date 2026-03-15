@@ -1,5 +1,13 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — C cross-build input extension hardening (C branch)
+
+- `scripts/build-cross-c.js` nově fail-fast validuje vstup přes helper `resolveSourceFileInput(...)` a odmítá vše mimo `.mulda` s explicitní chybou `Invalid source file: expected a .mulda file, got "<input>"`.
+- `tests/transpile.test.js` přidal regresi pro neplatnou příponu a zachoval valid-path coverage pro `examples/hello.mulda`; subprocess část testu toleruje sandbox `EPERM` bez falešného pádu unit suite.
+- Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS.
+- Sentinel: maintainability OK — validace je izolovaná do malého helperu, test kontrakt je přesnější a bez rozšíření scope mimo C orchestration.
+- Hydra: security posture OK — fail-fast omezuje chybné vstupy dřív než začne build flow; bez nových privilegií, síťových volání nebo rozšíření attack surface.
+
 ## 2026-03-15 — RC.final re-validation pass (C branch, autonomy cron)
 
 - Dodržen C-first scope (bez nových JS/VM feature změn); proveden pouze stabilizační gate běh.

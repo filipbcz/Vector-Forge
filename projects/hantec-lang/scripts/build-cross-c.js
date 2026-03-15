@@ -11,6 +11,38 @@ function usage() {
   console.error('Usage: node scripts/build-cross-c.js <file.mulda>');
 }
 
+function isMuldaSourceFile(filePath) {
+  return path.extname(filePath).toLowerCase() === '.mulda';
+}
+
+function resolveSourceFileInput(input) {
+  if (!input) {
+    return { ok: false, code: 1, message: 'Usage: node scripts/build-cross-c.js <file.mulda>' };
+  }
+
+  const sourceFile = path.isAbsolute(input)
+    ? input
+    : path.resolve(projectRoot, input);
+
+  if (!isMuldaSourceFile(sourceFile)) {
+    return {
+      ok: false,
+      code: 1,
+      message: `Invalid source file: expected a .mulda file, got "${input}"`
+    };
+  }
+
+  if (!fs.existsSync(sourceFile)) {
+    return {
+      ok: false,
+      code: 1,
+      message: `Source file not found: ${sourceFile}`
+    };
+  }
+
+  return { ok: true, sourceFile };
+}
+
 function sha256File(filePath) {
   const buf = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(buf).digest('hex');
@@ -18,18 +50,16 @@ function sha256File(filePath) {
 
 function main() {
   const input = process.argv[2];
-  if (!input) {
-    usage();
-    process.exit(1);
+  const resolved = resolveSourceFileInput(input);
+  if (!resolved.ok) {
+    if (!input) {
+      usage();
+    } else {
+      console.error(resolved.message);
+    }
+    process.exit(resolved.code);
   }
-
-  const sourceFile = path.isAbsolute(input)
-    ? input
-    : path.resolve(projectRoot, input);
-  if (!fs.existsSync(sourceFile)) {
-    console.error(`Source file not found: ${sourceFile}`);
-    process.exit(1);
-  }
+  const { sourceFile } = resolved;
 
   const baseName = path.basename(sourceFile, '.mulda');
   const distDir = path.join(projectRoot, 'dist');
@@ -118,4 +148,11 @@ function main() {
   process.exit(hasFailure ? 2 : 0);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  isMuldaSourceFile,
+  resolveSourceFileInput
+};
