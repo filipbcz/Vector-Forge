@@ -154,6 +154,7 @@ function testTraceEventsPresentInBothBackends() {
   });
   assert(jsTrace.some((event) => event.op === 'DECLARE'));
   assert(jsTrace.some((event) => event.op === 'PRINT_EXPR'));
+  assert(jsTrace.some((event) => event.op === 'DECLARE' && event.detail === 'x=1'));
 
   const vmTrace = [];
   runBytecodeObject(bytecode, {
@@ -162,6 +163,7 @@ function testTraceEventsPresentInBothBackends() {
   });
   assert(vmTrace.some((event) => event.op === 'DECLARE'));
   assert(vmTrace.some((event) => event.op === 'PRINT_EXPR'));
+  assert(vmTrace.some((event) => event.op === 'DECLARE' && event.detail === 'x=1'));
 }
 
 testVariablesAndPrint();

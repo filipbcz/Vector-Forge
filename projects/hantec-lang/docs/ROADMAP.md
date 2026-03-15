@@ -29,8 +29,13 @@
 - [x] Duplicate / pozdní start keyword vrací syntax error
 - [x] IDE title + demo text srovnán na aktuální verzi
 
+## v0.7.2 ✅ Trace detail enrichment for variables panel
+- [x] `DECLARE` trace event now carries `name=value` detail in JS backend
+- [x] `DECLARE` trace event now carries `name=value` detail in VM backend
+- [x] IDE Variables panel can consume real value snapshots without fallback when declaration trace is present
+
 ## Next
 - True runtime pause/continue hooks v interpreteru (bez replay emulace)
-- Rich variables snapshots directly from runtime scopes
+- Rich variables snapshots directly from runtime scopes (beyond declarations)
 - LSP prototype pro editor integraci
 - Cross-platform binary/runtime packaging

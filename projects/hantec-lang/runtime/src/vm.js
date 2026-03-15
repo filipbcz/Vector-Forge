@@ -88,18 +88,26 @@ function createTracer(options = {}) {
 
 function executeInstructions(instructions, scope, helpers, stdout, trace, depth = 0) {
   for (const ins of instructions) {
+    if (ins.op === 'DECLARE') {
+      scope[ins.name] = evaluateExpr(ins.expr, scope, helpers);
+      if (trace) {
+        trace({
+          op: ins.op,
+          line: ins.line,
+          depth,
+          detail: `${ins.name}=${JSON.stringify(scope[ins.name])}`
+        });
+      }
+      continue;
+    }
+
     if (trace) {
       trace({
         op: ins.op,
         line: ins.line,
         depth,
-        detail: ins.op === 'DECLARE' ? `name=${ins.name}` : ''
+        detail: ''
       });
-    }
-
-    if (ins.op === 'DECLARE') {
-      scope[ins.name] = evaluateExpr(ins.expr, scope, helpers);
-      continue;
     }
 
     if (ins.op === 'PRINT_TEXT') {

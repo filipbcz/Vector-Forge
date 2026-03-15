@@ -294,8 +294,8 @@ function generateJs(ast) {
 
     for (const node of nodes) {
       if (node.type === 'declare') {
-        out.push(`${pad}__muldaTrace({ backend: "js", op: "DECLARE", line: ${node.line}, detail: ${JSON.stringify(`name=${node.name}`)} });`);
         out.push(`${pad}const ${node.name} = (${node.expr});`);
+        out.push(`${pad}__muldaTrace({ backend: "js", op: "DECLARE", line: ${node.line}, detail: ${JSON.stringify(`${node.name}=`)} + JSON.stringify(${node.name}) });`);
       } else if (node.type === 'printText') {
         out.push(`${pad}__muldaTrace({ backend: "js", op: "PRINT_TEXT", line: ${node.line} });`);
         out.push(`${pad}console.log(${JSON.stringify(node.text)});`);

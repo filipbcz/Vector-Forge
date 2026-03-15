@@ -44,3 +44,10 @@
   - primární: `dyz`, `funkcicka`
   - deprecated kompatibilní aliasy zůstávají: `kdyz`, `funkce`
 - Verze package/compiler/bytecode metadata zvýšena na `v0.7.0`.
+
+## 2026-03-15 — Trace detail enrichment for variables panel (v0.7.2)
+
+- `DECLARE` trace event nově nese detail ve formátu `name=value` v obou backendech (JS i VM).
+- V JS backendu se trace emituje až po evaluaci deklarace, aby bylo možné bezpečně logovat skutečnou hodnotu.
+- VM backend sjednocen na stejný detail formát, takže IDE variables panel zobrazuje konzistentní snapshot napříč runtime režimy.
+- Přidány regresní testy, které ověřují `DECLARE detail === "x=1"` pro JS i VM trace.
