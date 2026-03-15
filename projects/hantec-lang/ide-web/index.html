@@ -3,144 +3,305 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mulda IDE v0.6.2</title>
+  <title>Mulda IDE v0.7.0</title>
   <style>
     :root {
-      --bg: #111;
-      --panel: #1a1a1a;
-      --output: #090909;
-      --text: #e8e8e8;
-      --muted: #8a8a8a;
-      --kw: #ff7ab6;
-      --num: #79c0ff;
-      --ident: #c9d1d9;
-      --comment: #6a9955;
-      --caret: #b8f;
+      --bg: #0b1020;
+      --panel: #121a2b;
+      --panel-2: #0f1625;
+      --line: #263248;
+      --text: #dce7ff;
+      --muted: #7f90b3;
+      --accent: #76b7ff;
+      --ok: #58d68d;
+      --warn: #ffb36b;
+      --danger: #ff6d7a;
+      --kw: #ff88c2;
+      --num: #8ed0ff;
+      --comment: #6fb37e;
+      --pair: rgba(118, 183, 255, 0.16);
+      --pair-warn: rgba(255, 109, 122, 0.23);
+      --bp: #ff5e73;
     }
-
     * { box-sizing: border-box; }
-    body { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; background: var(--bg); color: var(--text); }
-    .wrap { display:grid; grid-template-columns: 1fr 1fr; height:100vh; }
+    body { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--bg); color: var(--text); }
+    .app { height: 100vh; display: grid; grid-template-rows: 56px 1fr; }
+    .topbar { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); background: var(--panel-2); }
+    .badge { padding:3px 8px; border-radius: 999px; font-size: 12px; border:1px solid var(--line); color: var(--muted); }
+    .badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, #223); }
+    .badge.warn { color: var(--warn); }
+    button { padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:#1d2940; color:var(--text); cursor:pointer; font-weight:700; }
+    button:hover { border-color: var(--accent); }
+    button:disabled { opacity:0.5; cursor:not-allowed; }
+    .layout { min-height:0; display:grid; grid-template-columns: minmax(420px, 1fr) 420px; }
 
-    .editor-wrap {
-      position: relative;
-      height: 100%;
-      background: var(--panel);
-      overflow: hidden;
-    }
+    .editor-area { border-right:1px solid var(--line); background: var(--panel); min-height: 0; display:grid; grid-template-rows: 1fr auto; }
+    .editor-shell { min-height:0; display:grid; grid-template-columns: 48px 1fr; }
+    #gutter { margin:0; padding:12px 8px; overflow:auto; background:#0e1526; color:var(--muted); border-right:1px solid var(--line); user-select:none; }
+    #gutter .ln { display:block; height:1.45em; line-height:1.45; text-align:right; padding-right:4px; cursor:pointer; border-radius:4px; }
+    #gutter .ln.bp { color:var(--bp); font-weight:700; }
+    #gutter .ln.bp::before { content:'● '; }
+    #gutter .ln.current { background: rgba(118,183,255,0.15); }
 
-    .editor-layer {
-      position: absolute;
-      inset: 0;
-      margin: 0;
-      border: 0;
-      padding: 16px;
-      font: inherit;
-      line-height: 1.45;
-      white-space: pre;
-      overflow: auto;
-      tab-size: 2;
-    }
-
-    #highlight {
-      color: var(--ident);
-      pointer-events: none;
-    }
-
-    #src {
-      background: transparent;
-      color: transparent;
-      caret-color: var(--caret);
-      resize: none;
-      outline: none;
-    }
-
-    #highlight .kw { color: var(--kw); font-weight: 600; }
+    .editor-wrap { position:relative; overflow:hidden; }
+    .editor-layer { position:absolute; inset:0; margin:0; border:0; padding:12px; font: inherit; line-height:1.45; white-space:pre; overflow:auto; tab-size:2; }
+    #highlight { color: var(--text); pointer-events:none; }
+    #src { background: transparent; color: transparent; caret-color: #d3b6ff; resize:none; outline:none; }
+    #highlight .kw { color: var(--kw); font-weight: 700; }
     #highlight .num { color: var(--num); }
     #highlight .comment { color: var(--comment); font-style: italic; }
+    #highlight .pair { background: var(--pair); border-radius: 4px; }
+    #highlight .pair-warn { background: var(--pair-warn); border-radius: 4px; text-decoration: wavy underline var(--danger); }
 
-    .right { display:flex; flex-direction:column; }
-    .toolbar { display: flex; align-items: center; gap: 10px; padding: 10px; }
-    button { padding: 10px 14px; width: 120px; font-weight: 700; }
-    .legend { color: var(--muted); font-size: 12px; }
-    pre#out {
-      margin: 0;
-      padding: 16px;
-      background: var(--output);
-      color: #9f9;
-      flex: 1;
-      overflow: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    .editor-status { border-top:1px solid var(--line); padding:8px 12px; color:var(--muted); font-size:12px; display:flex; gap:14px; flex-wrap:wrap; }
+
+    .debug-area { min-height:0; display:grid; grid-template-rows: 220px 1fr 1fr; }
+    .panel { min-height:0; border-bottom:1px solid var(--line); background: var(--panel-2); display:flex; flex-direction:column; }
+    .panel h3 { margin:0; padding:10px 12px; font-size:13px; color:var(--muted); border-bottom:1px solid var(--line); }
+    .panel pre, .panel .content { margin:0; padding:10px 12px; overflow:auto; white-space:pre-wrap; word-break:break-word; flex:1; }
+    .stack-item { padding:6px 4px; border-bottom:1px dashed #22344f; }
+    .stack-item.active { background: rgba(118,183,255,0.12); }
+    .kv { display:grid; grid-template-columns: 1fr 1fr; gap:6px; font-size:12px; }
+    .kv div { padding:4px 6px; background:#121d32; border-radius:4px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="editor-wrap">
-      <pre id="highlight" class="editor-layer" aria-hidden="true"></pre>
-      <textarea id="src" class="editor-layer" spellcheck="false"># Mulda v0.6.2 demo
-Hokna
-vyblij "Nazdar z Muldy!"
-dej x = 3
-opakuj 3
-  kdyz x > 0
-    vyblij x
-  konec
-konec</textarea>
+  <div class="app">
+    <div class="topbar">
+      <button id="runBtn">Run</button>
+      <button id="pauseBtn" disabled>Pause</button>
+      <button id="stepBtn" disabled>Step</button>
+      <button id="continueBtn" disabled>Continue</button>
+      <span id="stateBadge" class="badge">idle</span>
+      <span id="pairBadge" class="badge">pairs: 0</span>
+      <span id="warnBadge" class="badge">warnings: 0</span>
     </div>
 
-    <div class="right">
-      <div class="toolbar">
-        <button id="runBtn">Run</button>
-        <span class="legend">Highlight: keywords / numbers / comments</span>
-      </div>
-      <pre id="out">Klikni Run...</pre>
+    <div class="layout">
+      <section class="editor-area">
+        <div class="editor-shell">
+          <pre id="gutter"></pre>
+          <div class="editor-wrap">
+            <pre id="highlight" class="editor-layer" aria-hidden="true"></pre>
+            <textarea id="src" class="editor-layer" spellcheck="false"># Mulda v0.7.0 debug IDE demo
+Hokna
+funkcicka secti(a, b)
+  dej soucet = a + b
+  vrat soucet
+konec
+
+dej x = 3
+opakuj 3
+  dyz x > 0
+    vyblij secti(x, 4)
+  konec
+konec</textarea>
+          </div>
+        </div>
+        <div class="editor-status">
+          <span>Gutter click = breakpoint toggle</span>
+          <span>Block pairing: Hokna/dyz/opakuj/funkcicka ↔ konec</span>
+          <span>Deprecated aliases are still parsed, examples use approved keywords.</span>
+        </div>
+      </section>
+
+      <section class="debug-area">
+        <div class="panel"><h3>Program output</h3><pre id="out">Klikni Run…</pre></div>
+        <div class="panel"><h3>Stack trace timeline</h3><div class="content" id="stack"></div></div>
+        <div class="panel"><h3>Variables / Watch (MVP)</h3><div class="content" id="vars"></div></div>
+      </section>
     </div>
   </div>
 
   <script>
-    const KEYWORDS = ['Hokna', 'dej', 'vyblij', 'kdyz', 'opakuj', 'konec', 'funkce', 'vrat', 'joNeboHovno', 'jo', 'hovno', 'aKurva', 'bo', 'nechcu', 'rekni', 'spocitej'];
+    const KEYWORDS = ['Hokna', 'dej', 'vyblij', 'dyz', 'kdyz', 'opakuj', 'konec', 'funkcicka', 'funkce', 'vrat', 'joNeboHovno', 'jo', 'hovno', 'aKurva', 'bo', 'nechcu', 'nacpi', 'program', 'rekni', 'spocitej', 'trtkej'];
+    const OPENERS = new Set(['Hokna', 'dyz', 'kdyz', 'opakuj', 'funkcicka', 'funkce']);
     const KEYWORD_RE = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'g');
 
     const runBtn = document.getElementById('runBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const stepBtn = document.getElementById('stepBtn');
+    const continueBtn = document.getElementById('continueBtn');
     const src = document.getElementById('src');
     const out = document.getElementById('out');
     const highlight = document.getElementById('highlight');
+    const gutter = document.getElementById('gutter');
+    const stackEl = document.getElementById('stack');
+    const varsEl = document.getElementById('vars');
+    const stateBadge = document.getElementById('stateBadge');
+    const pairBadge = document.getElementById('pairBadge');
+    const warnBadge = document.getElementById('warnBadge');
+
+    const breakpoints = new Set();
+    let lineMeta = [];
+    let traceEvents = [];
+    let stepIndex = -1;
+    let playTimer = null;
 
     function escapeHtml(value) {
-      return value
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;');
+      return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     }
 
-    function highlightLine(line) {
-      const trimmed = line.trimStart();
-      if (trimmed.startsWith('#')) {
-        return `<span class="comment">${escapeHtml(line)}</span>`;
+    function getLineMeta(lines) {
+      const stack = [];
+      const mark = new Map();
+      const warnings = [];
+
+      lines.forEach((raw, i) => {
+        const lineNo = i + 1;
+        const token = raw.trim().split(/\s+/)[0];
+        if (!token || token.startsWith('#')) return;
+
+        if (OPENERS.has(token)) {
+          stack.push({ token, lineNo });
+          return;
+        }
+
+        if (token === 'konec') {
+          const opener = stack.pop();
+          if (!opener) {
+            warnings.push(`line ${lineNo}: unmatched konec`);
+            mark.set(lineNo, 'warn');
+          } else {
+            mark.set(lineNo, 'pair');
+            mark.set(opener.lineNo, 'pair');
+          }
+        }
+      });
+
+      for (const unclosed of stack) {
+        warnings.push(`line ${unclosed.lineNo}: missing konec for ${unclosed.token}`);
+        mark.set(unclosed.lineNo, 'warn');
       }
 
+      return { mark, warnings };
+    }
+
+    function renderGutter(lines) {
+      const rows = [];
+      for (let i = 1; i <= lines.length; i += 1) {
+        const classes = ['ln'];
+        if (breakpoints.has(i)) classes.push('bp');
+        if (stepIndex >= 0 && traceEvents[stepIndex] && traceEvents[stepIndex].line === i) classes.push('current');
+        rows.push(`<span class="${classes.join(' ')}" data-line="${i}">${i}</span>`);
+      }
+      gutter.innerHTML = rows.join('');
+    }
+
+    function highlightLine(line, lineNo, marks) {
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith('#')) return `<span class="comment">${escapeHtml(line)}</span>`;
+      let cls = '';
+      if (marks.get(lineNo) === 'pair') cls = 'pair';
+      if (marks.get(lineNo) === 'warn') cls = 'pair-warn';
       const escaped = escapeHtml(line)
         .replace(KEYWORD_RE, '<span class="kw">$1</span>')
         .replace(/\b\d+(?:\.\d+)?\b/g, '<span class="num">$&</span>');
-
-      return escaped;
+      return cls ? `<span class="${cls}">${escaped}</span>` : escaped;
     }
 
-    function renderHighlight() {
-      highlight.innerHTML = src.value
-        .split('\n')
-        .map(highlightLine)
-        .join('\n');
+    function renderEditor() {
+      const lines = src.value.split('\n');
+      const pairing = getLineMeta(lines);
+      lineMeta = pairing.warnings;
+
+      highlight.innerHTML = lines.map((line, i) => highlightLine(line, i + 1, pairing.mark)).join('\n');
+      renderGutter(lines);
+      pairBadge.textContent = `pairs: ${[...pairing.mark.values()].filter(v => v === 'pair').length / 2}`;
+      warnBadge.textContent = `warnings: ${pairing.warnings.length}`;
+      warnBadge.className = `badge ${pairing.warnings.length ? 'warn' : 'ok'}`;
     }
 
     function syncScroll() {
       highlight.scrollTop = src.scrollTop;
       highlight.scrollLeft = src.scrollLeft;
+      gutter.scrollTop = src.scrollTop;
     }
 
-    src.addEventListener('input', renderHighlight);
+    function updateState(state) {
+      stateBadge.textContent = state;
+      stateBadge.className = `badge ${state === 'running' || state === 'playing' ? 'ok' : state === 'paused' ? 'warn' : ''}`;
+    }
+
+    function parseVarsFromEvent(event) {
+      const detail = String(event.detail || '');
+      const match = detail.match(/([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/);
+      if (match) {
+        return { [match[1]]: match[2] };
+      }
+      return null;
+    }
+
+    function renderDebugAt(index) {
+      if (!traceEvents.length || index < 0) {
+        stackEl.innerHTML = '<div class="stack-item">No trace events yet.</div>';
+        varsEl.innerHTML = '<div class="stack-item">No variables yet.</div>';
+        return;
+      }
+
+      const visible = traceEvents.slice(0, index + 1);
+      const stackRows = visible.slice(-80).map((event, i) => {
+        const active = i === visible.slice(-80).length - 1 ? 'active' : '';
+        return `<div class="stack-item ${active}">#${visible.length - 80 + i + 1} <b>${event.op}</b> line ${event.line ?? '?'} depth ${event.depth ?? '-'} ${escapeHtml(event.detail || '')}</div>`;
+      });
+      stackEl.innerHTML = stackRows.join('');
+
+      const vars = {};
+      for (const event of visible) {
+        const fromEvent = parseVarsFromEvent(event);
+        if (fromEvent) Object.assign(vars, fromEvent);
+      }
+
+      if (!Object.keys(vars).length) {
+        const last = visible[visible.length - 1];
+        varsEl.innerHTML = `<div class="stack-item">MVP fallback: no variable snapshot in trace. Last event detail:<br><code>${escapeHtml(last.detail || '(none)')}</code></div>`;
+      } else {
+        varsEl.innerHTML = `<div class="kv">${Object.entries(vars).map(([k, v]) => `<div>${escapeHtml(k)}</div><div>${escapeHtml(String(v))}</div>`).join('')}</div>`;
+      }
+
+      renderEditor();
+    }
+
+    function stopPlayback() {
+      if (playTimer) clearInterval(playTimer);
+      playTimer = null;
+      pauseBtn.disabled = true;
+      continueBtn.disabled = false;
+      stepBtn.disabled = false;
+      updateState('paused');
+    }
+
+    function play() {
+      if (!traceEvents.length) return;
+      updateState('playing');
+      pauseBtn.disabled = false;
+      stepBtn.disabled = true;
+      continueBtn.disabled = true;
+
+      playTimer = setInterval(() => {
+        if (stepIndex >= traceEvents.length - 1) {
+          clearInterval(playTimer);
+          playTimer = null;
+          pauseBtn.disabled = true;
+          continueBtn.disabled = true;
+          stepBtn.disabled = true;
+          updateState('done');
+          return;
+        }
+
+        stepIndex += 1;
+        const current = traceEvents[stepIndex];
+        if (breakpoints.has(current.line)) {
+          renderDebugAt(stepIndex);
+          stopPlayback();
+          return;
+        }
+
+        renderDebugAt(stepIndex);
+      }, 350);
+    }
+
+    src.addEventListener('input', renderEditor);
     src.addEventListener('scroll', syncScroll);
     src.addEventListener('keydown', (event) => {
       if (event.key === 'Tab') {
@@ -149,22 +310,81 @@ konec</textarea>
         const end = src.selectionEnd;
         src.value = `${src.value.slice(0, start)}  ${src.value.slice(end)}`;
         src.selectionStart = src.selectionEnd = start + 2;
-        renderHighlight();
+        renderEditor();
       }
     });
 
-    runBtn.addEventListener('click', async () => {
-      out.textContent = 'Running...';
-      const res = await fetch('/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: src.value })
-      });
-      const data = await res.json();
-      out.textContent = data.output ?? data.error;
+    gutter.addEventListener('click', (event) => {
+      const line = Number(event.target.dataset.line);
+      if (!line) return;
+      if (breakpoints.has(line)) breakpoints.delete(line);
+      else breakpoints.add(line);
+      renderEditor();
     });
 
-    renderHighlight();
+    runBtn.addEventListener('click', async () => {
+      updateState('running');
+      runBtn.disabled = true;
+      out.textContent = 'Running…';
+      stackEl.innerHTML = '';
+      varsEl.innerHTML = '';
+
+      try {
+        const res = await fetch('/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: src.value, traceJson: true })
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          out.textContent = data.error || 'Run failed';
+          updateState('error');
+          return;
+        }
+
+        out.textContent = data.output || '(no output)';
+        traceEvents = Array.isArray(data.trace) ? data.trace : [];
+        stepIndex = -1;
+
+        if (!traceEvents.length) {
+          updateState('done');
+          stepBtn.disabled = true;
+          continueBtn.disabled = true;
+          pauseBtn.disabled = true;
+          renderDebugAt(-1);
+          return;
+        }
+
+        stepBtn.disabled = false;
+        continueBtn.disabled = false;
+        pauseBtn.disabled = true;
+        updateState('paused');
+        renderDebugAt(-1);
+      } catch (err) {
+        out.textContent = String(err.message || err);
+        updateState('error');
+      } finally {
+        runBtn.disabled = false;
+      }
+    });
+
+    stepBtn.addEventListener('click', () => {
+      if (!traceEvents.length) return;
+      if (stepIndex < traceEvents.length - 1) {
+        stepIndex += 1;
+        renderDebugAt(stepIndex);
+      }
+      if (stepIndex >= traceEvents.length - 1) {
+        stepBtn.disabled = true;
+        continueBtn.disabled = true;
+        updateState('done');
+      }
+    });
+
+    continueBtn.addEventListener('click', play);
+    pauseBtn.addEventListener('click', stopPlayback);
+
+    renderEditor();
   </script>
 </body>
 </html>

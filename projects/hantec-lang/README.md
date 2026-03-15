@@ -2,36 +2,44 @@
 
 Experimentální jazyk **Mulda** + web IDE.
 
-## Schválená syntaxe (MVP)
+## Schválená syntaxe (v0.7.0)
 
 - souborová přípona: `.mulda`
 - start programu: `Hokna`
 - výpis: `vyblij <expr>`
+- podmínka: `dyz <expr>`
+- funkce: `funkcicka name(args...)`
 - bool typ: `joNeboHovno`
 - bool literály: `jo` / `hovno`
 - logické operátory: `aKurva` / `bo` / `nechcu`
+- bloky: `dyz/opakuj/funkcicka ... konec`
 
 ### Dočasné deprecated aliasy (kompatibilita)
 - start: `nacpi`, `program`
 - print: `rekni`, `spocitej`
+- control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.6.2
+## Co je ve v0.7.0
 
-- `dej x = ...` deklarace proměnných (volitelně `dej flag: joNeboHovno = jo`)
-- bloky `kdyz`, `opakuj`, `funkce`, `vrat`, `konec`
-- stdlib: `delka`, `cislo`, `text`, `minimum`, `maximum`, `obsahuje`
-- transpile do JS + bytecode (`mulda-vm`)
-- trace mód pro oba backendy (`--trace` text, `--trace-json` JSON lines)
-- parser teď vyžaduje start keyword (`Hokna`/legacy alias) jako první statement
-- web IDE s highlightem Mulda keywordů
-- CLI: `mulda`, `muldac`, `muldarun`
+- Modernizované web IDE (single-page layout):
+  - horní debug toolbar (Run/Pause/Step/Continue)
+  - levý editor s gutterem a breakpoints
+  - pravé debug panely (output / stack trace timeline / variables)
+- Vylepšený syntax highlight pro Mulda keywordy
+- Block pairing vizualizace (`Hokna`, `dyz`, `opakuj`, `funkcicka` ↔ `konec`) + warning pro unmatched `konec`
+- Breakpointy klikem v gutteru (in-memory per session)
+- Trace-based stepping MVP nad `--trace-json` eventy
+- Stack trace panel parsuje trace události
+- Variables/watch panel zobrazuje snapshot z event detailu, fallback na poslední event detail
+- Zachován compile/run flow přes `dist/` jako v předchozí verzi
 
 ## Quickstart
 
 ```bash
 npm run demo
 npm test
+npm run ide
 ```
 
 ## CLI
@@ -41,12 +49,6 @@ npm run muldac -- examples/hello.mulda
 npm run muldarun -- examples/hello.mulda
 npm run mulda -- run-bc --trace examples/hello.mulda
 npm run mulda -- run --trace-json examples/hello.mulda
-
-# po npm link
-# mulda run examples/hello.mulda
-# mulda run-bc --debug examples/hello.mulda
-# muldac examples/hello.mulda
-# muldarun --bc --trace examples/hello.mulda
 ```
 
 ## Security note

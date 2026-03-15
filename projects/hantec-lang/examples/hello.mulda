@@ -1,4 +1,4 @@
-# Mulda v0.6.0 demo
+# Mulda v0.7.0 demo
 Hokna
 vyblij "Nazdar z Muldy!"
 dej x = 3
@@ -6,6 +6,6 @@ vyblij x
 vyblij minimum(10, "3", x)
 vyblij maximum(10, "3", x)
 dej jeTo: joNeboHovno = jo
-kdyz jeTo aKurva nechcu hovno
+dyz jeTo aKurva nechcu hovno
   vyblij obsahuje("mulda", "ul")
 konec

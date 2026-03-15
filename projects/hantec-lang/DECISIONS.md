@@ -30,3 +30,17 @@
 - Parser nově vyžaduje start keyword (`Hokna` nebo legacy alias `nacpi`/`program`) jako první non-comment statement.
 - Duplicitní nebo pozdě umístěný start keyword vrací explicitní syntax error.
 - Tím se jazyk chová víc podle schválené specifikace (deterministický entry-point) a IDE/demo metadata byla dorovnána na v0.6.2.
+
+## 2026-03-15 — IDE debug foundation + approved keyword pivot (v0.7.0)
+
+- Web IDE bylo přepracováno do single-page debug layoutu:
+  - top toolbar (`Run`, `Pause`, `Step`, `Continue`) se stavovými badge
+  - levá část editor + gutter breakpointy
+  - pravá část debug panely (output, stack timeline, variables/watch MVP)
+- IDE run endpoint nově běží v trace-json režimu a vrací parsed trace eventy pro klientské stepping UI.
+- Stepping je MVP emulace nad trace replay (true runtime pause zatím není implementována).
+- Přidána vizualizace párování bloků (`Hokna`, `dyz`, `opakuj`, `funkcicka` ↔ `konec`) + warningy na unmatched `konec`/missing `konec`.
+- Jazykové keywordy byly dorovnány na schválený slovník:
+  - primární: `dyz`, `funkcicka`
+  - deprecated kompatibilní aliasy zůstávají: `kdyz`, `funkce`
+- Verze package/compiler/bytecode metadata zvýšena na `v0.7.0`.
