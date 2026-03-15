@@ -257,6 +257,19 @@ function testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma() {
   assert(c.includes('__mulda_obsahuje("a\\\",b", "b")'));
 }
 
+function testCBackendBoolAssignmentUsesBoolTrace() {
+  const source = [
+    'Hokna',
+    'dej flag: joNeboHovno = jo',
+    'flag = hovno',
+    'vyblij flag'
+  ].join('\n');
+
+  const { c } = compileMulda(source);
+  assert(c.includes('__mulda_trace_bool_var("DECLARE", 2, "flag", flag);'));
+  assert(c.includes('__mulda_trace_bool_var("ASSIGN", 3, "flag", flag);'));
+}
+
 function testNativeArtifactMetadataSidecar() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mulda-meta-'));
   const artifactPath = path.join(tmpDir, 'hello-linux-x64');
@@ -347,6 +360,46 @@ function testCTraceSnapshotsWhenGccAvailable() {
   assert.deepStrictEqual(snapshots.map((event) => event.detail), ['x=2', 'x=5']);
 }
 
+function testCBoolTraceSnapshotsWhenGccAvailable() {
+  const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
+  if (gcc.status !== 0) {
+    console.log('skip c bool trace snapshot e2e (gcc unavailable)');
+    return;
+  }
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mulda-c-bool-trace-'));
+  const cPath = path.join(tmpDir, 'demo.c');
+  const binPath = path.join(tmpDir, 'demo.bin');
+
+  const { c } = compileMulda(['Hokna', 'dej flag: joNeboHovno = jo', 'flag = hovno', 'vyblij flag'].join('\n'));
+  fs.writeFileSync(cPath, c, 'utf8');
+
+  const cc = spawnSync('gcc', [cPath, '-std=c11', '-O2', '-o', binPath], { stdio: 'inherit' });
+  assert.strictEqual(cc.status || 0, 0, 'gcc compile should pass (bool trace snapshot)');
+
+  const run = spawnSync(binPath, {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      MULDA_TRACE: '1',
+      MULDA_TRACE_FORMAT: 'json'
+    }
+  });
+  assert.strictEqual(run.status || 0, 0, 'c binary should run (bool trace snapshot)');
+
+  const events = (run.stderr || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+
+  assert(events.some((event) => event.op === 'DECLARE' && event.detail === 'flag=true'));
+  assert(events.some((event) => event.op === 'ASSIGN' && event.detail === 'flag=false'));
+
+  const snapshots = events.filter((event) => event.op === 'SNAPSHOT' && /^flag=/.test(event.detail || ''));
+  assert.deepStrictEqual(snapshots.map((event) => event.detail), ['flag=true', 'flag=false']);
+}
+
 function testCE2EWhenGccAvailable() {
   const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
   if (gcc.status !== 0) {
@@ -385,8 +438,10 @@ testTraceEventsPresentInBothBackends();
 testAssignUnknownVariableThrowsInVm();
 testCBackendGenerationAndArgs();
 testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma();
+testCBackendBoolAssignmentUsesBoolTrace();
 testNativeArtifactMetadataSidecar();
 testCrossBuildManifestScript();
 testCTraceSnapshotsWhenGccAvailable();
+testCBoolTraceSnapshotsWhenGccAvailable();
 testCE2EWhenGccAvailable();
 console.log('tests passed');

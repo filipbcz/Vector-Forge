@@ -198,3 +198,15 @@
   - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `RELEASE_KEEP_BUNDLES=2 bash scripts/release-rc.sh` PASS.
   - Sentinel: změna je malá, lokalizovaná do build orchestrace; bez dopadu na parser/runtime semantics.
   - Hydra: beze změny attack surface; žádná nová privilegia ani externí integrace, pouze determinističtější interní build flow.
+
+## 2026-03-15 — C trace parity hardening: typed ASSIGN snapshots for bool variables (RC.2)
+
+- `generateC()` nově drží jednoduchý scope-chain typů (`bool`/`double`) odvozený z deklarací (`dej ...: joNeboHovno`) a funkčních parametrů.
+- `ASSIGN` trace v C backendu už není vždy numerický: pro bool proměnné emituje `__mulda_trace_bool_var`, takže detail i `SNAPSHOT` mají tvar `flag=true/false` místo `flag=1/0`.
+- Přidány regresní testy:
+  - `testCBackendBoolAssignmentUsesBoolTrace` (codegen kontrakt)
+  - `testCBoolTraceSnapshotsWhenGccAvailable` (gcc e2e JSON trace kontrakt)
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS.
+  - Sentinel: maintainability OK — změna je lokalizovaná v C emitteru, s minimálním zásahem do ostatních backendů, krytá unit+e2e testem.
+  - Hydra: security posture OK — žádná nová privilegia ani externí I/O; pouze zpřesnění diagnostických trace dat.

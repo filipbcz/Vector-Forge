@@ -537,19 +537,30 @@ function generateC(ast) {
 
   let repeatCounter = 0;
 
-  function emit(nodes, indent = 0) {
+  function emit(nodes, indent = 0, scopeChain = [new Map()]) {
     const pad = '  '.repeat(indent);
+    const currentScope = scopeChain[scopeChain.length - 1];
+    const resolveVarType = (name) => {
+      for (let i = scopeChain.length - 1; i >= 0; i -= 1) {
+        if (scopeChain[i].has(name)) return scopeChain[i].get(name);
+      }
+      return 'double';
+    };
+
     for (const node of nodes) {
       if (node.type === 'declare') {
         const cType = node.declaredType === 'joNeboHovno' ? 'bool' : 'double';
+        currentScope.set(node.name, cType);
         const cExpr = normalizeCExpression(node.expr);
         out.push(`${pad}${cType} ${node.name} = (${cExpr});`);
         if (cType === 'bool') out.push(`${pad}__mulda_trace_bool_var("DECLARE", ${node.line}, "${cEscape(node.name)}", ${node.name});`);
         else out.push(`${pad}__mulda_trace_num_var("DECLARE", ${node.line}, "${cEscape(node.name)}", (double)${node.name});`);
       } else if (node.type === 'assign') {
         const cExpr = normalizeCExpression(node.expr);
+        const trackedType = resolveVarType(node.name);
         out.push(`${pad}${node.name} = (${cExpr});`);
-        out.push(`${pad}__mulda_trace_num_var("ASSIGN", ${node.line}, "${cEscape(node.name)}", (double)${node.name});`);
+        if (trackedType === 'bool') out.push(`${pad}__mulda_trace_bool_var("ASSIGN", ${node.line}, "${cEscape(node.name)}", ${node.name});`);
+        else out.push(`${pad}__mulda_trace_num_var("ASSIGN", ${node.line}, "${cEscape(node.name)}", (double)${node.name});`);
       } else if (node.type === 'printText') {
         out.push(`${pad}__mulda_trace("PRINT_TEXT", ${node.line}, "");`);
         out.push(`${pad}printf("${cEscape(node.text)}\\n");`);
@@ -563,7 +574,7 @@ function generateC(ast) {
         const cExpr = normalizeCExpression(node.expr);
         out.push(`${pad}__mulda_trace("IF", ${node.line}, "");`);
         out.push(`${pad}if ((${cExpr})) {`);
-        emit(node.body, indent + 1);
+        emit(node.body, indent + 1, [...scopeChain, new Map()]);
         out.push(`${pad}}`);
       } else if (node.type === 'repeat') {
         const cExpr = normalizeCExpression(node.expr);
@@ -571,12 +582,13 @@ function generateC(ast) {
         const idx = `__mulda_i${repeatCounter}`;
         out.push(`${pad}__mulda_trace("REPEAT", ${node.line}, "");`);
         out.push(`${pad}for (int ${idx} = 0; ${idx} < (int)(${cExpr}); ${idx} += 1) {`);
-        emit(node.body, indent + 1);
+        emit(node.body, indent + 1, [...scopeChain, new Map()]);
         out.push(`${pad}}`);
       } else if (node.type === 'function') {
         out.push(`${pad}__mulda_trace("FUNCTION", ${node.line}, "${cEscape(`name=${node.name}`)}");`);
         out.push(`${pad}static double ${node.name}(${node.params.map((p) => `double ${p}`).join(', ') || 'void'}) {`);
-        emit(node.body, indent + 1);
+        const fnScope = new Map(node.params.map((p) => [p, 'double']));
+        emit(node.body, indent + 1, [...scopeChain, fnScope]);
         out.push(`${pad}  return 0;`);
         out.push(`${pad}}`);
         out.push('');
