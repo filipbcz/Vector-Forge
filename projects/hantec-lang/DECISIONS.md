@@ -1,5 +1,17 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC reproducibility audit hardening: exact bundle-name match for stable version tags (C/release stability)
+
+- Incident: `npm run audit:reproducibility:rc` pro verzi `1.0.0` failoval na `bundle version mismatch`, protože výběr bundle pair používal `startsWith("rc-1.0.0-")` a omylem zahrnul i historické `rc-1.0.0-rc.*-<timestamp>` adresáře.
+- Fix: `scripts/audit-release-reproducibility.js` nyní filtruje pouze **exact** pattern `${channel}-${version}-<YYYYMMDDTHHMMSSZ>` přes escaped regex; mixed RC-tag varianty jsou z výběru vyloučeny.
+- Přidán regresní test `testReproAuditIgnoresMixedRcTagBundlesForGaVersion` v `tests/transpile.test.js`, který vytváří fixture bundle set (`1.0.0-rc.5` + `1.0.0`) a ověřuje správný výběr pouze čistých `1.0.0` timestamp bundle.
+- Forge gate:
+  - `npm test` PASS
+  - `npm run release:rc -- examples/hello.mulda` PASS
+  - `npm run audit:reproducibility:rc` PASS
+- Sentinel gate: maintainability OK — fix je lokalizovaný v bundle discovery vrstvě + krytý regresním testem bez zásahu do compiler/runtime semantics.
+- Hydra gate: security posture OK — změna je read-only nad názvy lokálních adresářů, bez nových privilegií, sítí nebo rozšíření attack surface.
+
 ## 2026-03-15 — reproducibility audit ordering fix for mixed RC tags (C/release stability)
 
 - Pro RC stability běhy s GA verzí (`1.0.0`) byl reproducibility audit náchylný porovnávat starší `rc-1.0.0-rc.*` bundly místo nejnovějších `rc-1.0.0-<timestamp>` běhů, protože řadil lexikograficky celý suffix.

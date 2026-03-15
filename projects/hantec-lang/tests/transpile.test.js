@@ -379,6 +379,47 @@ function testCrossBuildManifestScriptRejectsNonMuldaInput() {
   });
 }
 
+function testReproAuditIgnoresMixedRcTagBundlesForGaVersion() {
+  const projectRoot = path.resolve(__dirname, '..');
+  const bundlesDir = path.join(projectRoot, 'release', 'bundles');
+  const script = path.join(projectRoot, 'scripts', 'audit-release-reproducibility.js');
+  fs.mkdirSync(bundlesDir, { recursive: true });
+
+  const fixtures = [
+    { name: 'rc-1.0.0-rc.5-20990101T000000Z', version: '1.0.0-rc.5' },
+    { name: 'rc-1.0.0-20990101T000001Z', version: '1.0.0' },
+    { name: 'rc-1.0.0-20990101T000002Z', version: '1.0.0' }
+  ];
+
+  try {
+    for (const fixture of fixtures) {
+      const dir = path.join(bundlesDir, fixture.name);
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, 'checksums.sha256'), [
+        `${'a'.repeat(64)}  release/linux/bin/mulda`,
+        `${'b'.repeat(64)}  release/windows/bin/mulda.exe`,
+        `${'c'.repeat(64)}  release/manifest.json`,
+        `${'d'.repeat(64)}  release/manifest.source.json`
+      ].join('\n') + '\n', 'utf8');
+      fs.writeFileSync(path.join(dir, 'manifest.json'), JSON.stringify({ version: fixture.version }, null, 2), 'utf8');
+    }
+
+    const run = spawnSync(process.execPath, [script, '1.0.0', 'rc'], {
+      cwd: projectRoot,
+      encoding: 'utf8'
+    });
+
+    assert.strictEqual(run.status || 0, 0, run.stderr || run.stdout);
+    assert((run.stdout || '').includes('prev: rc-1.0.0-20990101T000001Z'));
+    assert((run.stdout || '').includes('next: rc-1.0.0-20990101T000002Z'));
+    assert(!(run.stdout || '').includes('rc-1.0.0-rc.5-20990101T000000Z'));
+  } finally {
+    for (const fixture of fixtures) {
+      fs.rmSync(path.join(bundlesDir, fixture.name), { recursive: true, force: true });
+    }
+  }
+}
+
 function testCTraceSnapshotsWhenGccAvailable() {
   const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
   if (gcc.status !== 0) {
@@ -503,6 +544,7 @@ testCE2EBoolPrintParityWhenGccAvailable();
 testNativeArtifactMetadataSidecar();
 testCrossBuildManifestScript();
 testCrossBuildManifestScriptRejectsNonMuldaInput();
+testReproAuditIgnoresMixedRcTagBundlesForGaVersion();
 testCTraceSnapshotsWhenGccAvailable();
 testCBoolTraceSnapshotsWhenGccAvailable();
 testCE2EWhenGccAvailable();

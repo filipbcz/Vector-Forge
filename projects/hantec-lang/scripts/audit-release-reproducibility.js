@@ -15,11 +15,16 @@ function extractTimestampStamp(bundleName) {
   return match ? match[1] : null;
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function listBundles(version, channel) {
   if (!fs.existsSync(bundlesRoot)) return [];
   const prefix = `${channel}-${version}-`;
+  const exactBundleName = new RegExp(`^${escapeRegex(prefix)}\\d{8}T\\d{6}Z$`);
   return fs.readdirSync(bundlesRoot)
-    .filter((name) => name.startsWith(prefix))
+    .filter((name) => exactBundleName.test(name))
     .map((name) => ({
       name,
       stamp: name.slice(prefix.length),
