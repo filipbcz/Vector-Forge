@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { spawn } = require('child_process');
 const path = require('path');
+const { runBytecodeFile } = require('./vm');
 
 function runJs(entryFile) {
   const target = path.resolve(entryFile);
@@ -15,18 +16,32 @@ function runJs(entryFile) {
   });
 }
 
+function runEntry(entryFile) {
+  const target = path.resolve(entryFile);
+  if (target.endsWith('.bytecode.json')) {
+    runBytecodeFile(target);
+    return;
+  }
+  runJs(target);
+}
+
 function main() {
   const [, , entryFile] = process.argv;
   if (!entryFile) {
-    console.error('Usage: node runtime/src/run.js <program.js>');
+    console.error('Usage: node runtime/src/run.js <program.js|program.bytecode.json>');
     process.exit(1);
   }
 
-  runJs(entryFile);
+  try {
+    runEntry(entryFile);
+  } catch (err) {
+    console.error(err.message || String(err));
+    process.exit(1);
+  }
 }
 
 if (require.main === module) {
   main();
 }
 
-module.exports = { runJs };
+module.exports = { runJs, runEntry };

@@ -8,10 +8,10 @@ const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
 const runner = path.join(projectRoot, 'runtime/src/run.js');
 
 function printUsage() {
-  console.error('Usage: hantec run <file.hantec>');
+  console.error('Usage: hantec run <file.hantec> | hantec run-bc <file.hantec>');
 }
 
-function runFile(inputFile) {
+function runFile(inputFile, mode = 'js') {
   const resolved = path.resolve(inputFile);
   if (!fs.existsSync(resolved)) {
     console.error(`File not found: ${resolved}`);
@@ -25,19 +25,27 @@ function runFile(inputFile) {
   const t = spawnSync(process.execPath, [transpiler, resolved, outputFile], { stdio: 'inherit' });
   if (t.status !== 0) return t.status || 1;
 
-  const r = spawnSync(process.execPath, [runner, outputFile], { stdio: 'inherit' });
+  const entryFile = mode === 'bytecode'
+    ? outputFile.replace(/\.js$/, '.bytecode.json')
+    : outputFile;
+
+  const r = spawnSync(process.execPath, [runner, entryFile], { stdio: 'inherit' });
   return r.status || 0;
 }
 
 function main() {
   const [, , command, inputFile] = process.argv;
 
-  if (command !== 'run' || !inputFile) {
-    printUsage();
-    process.exit(1);
+  if (command === 'run' && inputFile) {
+    process.exit(runFile(inputFile, 'js'));
   }
 
-  process.exit(runFile(inputFile));
+  if (command === 'run-bc' && inputFile) {
+    process.exit(runFile(inputFile, 'bytecode'));
+  }
+
+  printUsage();
+  process.exit(1);
 }
 
 if (require.main === module) {

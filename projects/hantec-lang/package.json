@@ -1,6 +1,6 @@
 {
   "name": "hantec-lang",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "private": true,
   "description": "Scaffold for Hantec language + web IDE",
   "bin": {
@@ -9,7 +9,9 @@
   "scripts": {
     "compile": "node compiler/src/transpile.js examples/hello.hantec dist/hello.js",
     "run": "node runtime/src/run.js dist/hello.js",
+    "run:bytecode": "node runtime/src/run.js dist/hello.bytecode.json",
     "demo": "npm run compile && npm run run",
+    "demo:bytecode": "npm run compile && npm run run:bytecode",
     "ide": "node ide-web/server.js",
     "test": "node tests/transpile.test.js",
     "hantec": "node runtime/src/hantec.js"

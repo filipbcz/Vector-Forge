@@ -1,6 +1,38 @@
 {
-  "version": "0.4.3",
-  "target": "node",
-  "note": "bytecode backend placeholder",
-  "bytes": 1353
+  "version": "0.5.0",
+  "target": "hantec-vm",
+  "note": "bytecode prototype with recursive instruction blocks",
+  "instructions": [
+    {
+      "op": "PRINT_TEXT",
+      "text": "Nazdar z Hantecu!",
+      "line": 2
+    },
+    {
+      "op": "DECLARE",
+      "name": "x",
+      "expr": "21 + 21",
+      "line": 3
+    },
+    {
+      "op": "PRINT_EXPR",
+      "expr": "x",
+      "line": 4
+    },
+    {
+      "op": "PRINT_EXPR",
+      "expr": "minimum(10, \"3\", x)",
+      "line": 5
+    },
+    {
+      "op": "PRINT_EXPR",
+      "expr": "maximum(10, \"3\", x)",
+      "line": 6
+    },
+    {
+      "op": "PRINT_EXPR",
+      "expr": "obsahuje(\"mulda\", \"ul\")",
+      "line": 7
+    }
+  ]
 }

@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.4.3 (aktuální)
+## Co je ve v0.5.0 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -20,7 +20,9 @@ Experimentální jazyk **Hantec** + web IDE.
   - `maximum(...x)` — maximum přes číselné argumenty
   - `obsahuje(container, needle)` — `true/false` pro substring, položku v poli nebo klíč v objektu
 - Chybové hlášky ze transpileru obsahují `line/col`
-- CLI příkaz `hantec run file.hantec`
+- CLI příkaz `hantec run file.hantec` (JS runtime)
+- CLI příkaz `hantec run-bc file.hantec` (bytecode VM runtime)
+- Bytecode prototyp output `dist/*.bytecode.json` s instrukcemi pro interní VM
 - Web IDE (compile + run) + základní syntax highlighting (keywords/čísla/komentáře)
 
 ## Struktura
@@ -43,6 +45,14 @@ npm test
 
 ```bash
 npm run hantec -- run examples/hello.hantec
+npm run hantec -- run-bc examples/hello.hantec
 # nebo po npm link:
 # hantec run examples/hello.hantec
+# hantec run-bc examples/hello.hantec
 ```
+
+## Security note (v0.5 VM prototype)
+
+VM i JS backend aktuálně vyhodnocují výrazy přes JavaScript evaluaci (`new Function`).
+To znamená, že **Hantec zdroj ber jako trusted input** (stejně jako vlastní JS skript),
+a nespouštěj neověřený cizí kód na hostu bez sandboxu.

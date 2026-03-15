@@ -39,3 +39,12 @@
 - Marker transpileru/bytecode placeholderu byl posunut na `v0.4.3` a příklady/testy byly rozšířeny o nové helpery.
 - Důvod: navázat na otevřený bod po v0.4.2 (rozšíření stdlib) bez rozbití jednoduchého line-based kompilátoru.
 - Dopad: jazyk má praktičtější vestavěné utility pro běžné skriptovací scénáře v CLI i IDE.
+
+## 2026-03-15 — v0.5.0 bytecode prototyp + VM runner
+- Bytecode emitter už není placeholder podle velikosti JS; nově generuje strukturované instrukce (`DECLARE`, `PRINT_TEXT`, `PRINT_EXPR`, `IF`, `REPEAT`, `FUNCTION`, `RETURN`) z AST.
+- Přidán VM interpreter (`runtime/src/vm.js`) s vyhodnocením výrazů nad scope a rekurzivním během bloků, včetně return-signal mechaniky uvnitř funkcí.
+- Runtime runner (`runtime/src/run.js`) umí spouštět jak `.js`, tak `.bytecode.json` vstupy.
+- CLI rozšířeno o `hantec run-bc <file.hantec>` pro bytecode execution path.
+- Test suite rozšířena o integrační test bytecode běhu s funkcí + bloky + stdlib.
+- Důvod: uzavřít první část roadmapy v0.5 (reálný VM prototyp) bez rozbití stávající JS backend kompatibility.
+- Dopad: projekt má dvě spustitelné backend cesty (JS transpile a interní VM), což odemyká další práci na fixture sadě a publikaci.
