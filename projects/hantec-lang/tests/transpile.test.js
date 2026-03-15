@@ -336,7 +336,8 @@ function testCrossBuildManifestScript() {
   assert.strictEqual(fs.existsSync(manifestPath), true);
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert.strictEqual(manifest.lang, 'mulda');
-  assert.strictEqual(manifest.version, '1.0.0-rc.2');
+  const pkg = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+  assert.strictEqual(manifest.version, pkg.version);
   assert.strictEqual(typeof manifest.cSource, 'string');
   assert.strictEqual(typeof manifest.cSourceSha256, 'string');
   assert.strictEqual(manifest.cSourceSha256.length, 64);

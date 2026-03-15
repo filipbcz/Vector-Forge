@@ -1,5 +1,14 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.3 test-gate stabilizace: manifest version assertion bez hardcodu
+
+- V regresním testu `testCrossBuildManifestScript` byla odstraněna hardcoded hodnota `1.0.0-rc.2` a assertion nyní bere verzi z `package.json`.
+- Důvod: po bumpu na `1.0.0-rc.3` test falešně padal, i když C cross-build a manifest contract byly validní.
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS (linux-x64 + windows-x64).
+  - Sentinel: maintainability OK — změna je lokalizovaná na test contract, zvyšuje release stabilitu při dalších version bump iteracích.
+  - Hydra: security posture OK — bez runtime změn, bez nových privilegii a bez nové attack surface.
+
 ## 2026-03-15 — RC.2 stability re-validation + release bundle refresh (C-first branch)
 
 - Proveden stabilizační běh bez rozšiřování JS/VM feature scope: `npm test`, `npm run build:c:cross -- examples/hello.mulda`, `npm run pack:check`, `npm run release:rc`.
