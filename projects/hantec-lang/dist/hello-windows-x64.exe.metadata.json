@@ -4,7 +4,7 @@
   "backend": "c",
   "platform": "windows-x64",
   "compiler": "x86_64-w64-mingw32-gcc",
-  "generatedAt": "2026-03-15T15:46:10.485Z",
+  "generatedAt": "2026-03-15T18:33:26.780Z",
   "sourceFile": "/home/ubuntu/vector-forge/projects/hantec-lang/examples/hello.mulda",
   "cFile": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello.c",
   "artifactFile": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-windows-x64.exe"

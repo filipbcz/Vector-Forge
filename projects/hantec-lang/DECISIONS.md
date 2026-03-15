@@ -169,3 +169,12 @@
 - Forge test gate: `npm test` PASS + `npm run build:c:cross -- examples/hello.mulda` PASS (linux-x64 + windows-x64).
 - Sentinel gate: změna je minimální, izolovaná a krytá testem; bez dopadu na JS/VM feature set.
 - Hydra gate: žádná nová attack surface; fix snižuje riziko špatně přeloženého výrazu při edge-case string literálech.
+
+## 2026-03-15 — RC.2 release artifact refresh after C parser fix
+
+- Proveden nový RC packaging běh (`bash scripts/release-rc.sh`) po C-fixu, aby release payload embedoval opravu i v distribuovaných compiler kopíích (`release/linux|windows/compiler/src/transpile.js`).
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `bash scripts/release-rc.sh` PASS.
+  - Sentinel: změny jsou artifact-only refresh + synchronizace release copy compileru, bez rozšíření scope mimo C větev.
+  - Hydra: bez nové attack surface; pouze re-build binárek/manifestů/checksumů, zachovaný fail-fast toolchain model.
+- Výsledek: aktualizovaný RC bundle `release/bundles/rc-1.0.0-rc.2-20260315T183323Z` a nové checksum/manifest metadata pro Linux+Windows artefakty.
