@@ -268,6 +268,29 @@ function testCBackendBoolAssignmentUsesBoolTrace() {
   const { c } = compileMulda(source);
   assert(c.includes('__mulda_trace_bool_var("DECLARE", 2, "flag", flag);'));
   assert(c.includes('__mulda_trace_bool_var("ASSIGN", 3, "flag", flag);'));
+  assert(c.includes('__mulda_print_bool((bool)(flag));'));
+}
+
+function testCE2EBoolPrintParityWhenGccAvailable() {
+  const gcc = spawnSync('gcc', ['--version'], { stdio: 'ignore' });
+  if (gcc.status !== 0) {
+    console.log('skip c bool print parity e2e (gcc unavailable)');
+    return;
+  }
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mulda-c-bool-print-'));
+  const cPath = path.join(tmpDir, 'demo.c');
+  const binPath = path.join(tmpDir, 'demo.bin');
+
+  const { c } = compileMulda(['Hokna', 'dej flag: joNeboHovno = jo', 'flag = hovno', 'vyblij flag'].join('\n'));
+  fs.writeFileSync(cPath, c, 'utf8');
+
+  const cc = spawnSync('gcc', [cPath, '-std=c11', '-O2', '-o', binPath], { stdio: 'inherit' });
+  assert.strictEqual(cc.status || 0, 0, 'gcc compile should pass (bool print parity)');
+
+  const run = spawnSync(binPath, { encoding: 'utf8' });
+  assert.strictEqual(run.status || 0, 0, 'c binary should run (bool print parity)');
+  assert.strictEqual((run.stdout || '').trim(), 'false');
 }
 
 function testNativeArtifactMetadataSidecar() {
@@ -446,6 +469,7 @@ testAssignUnknownVariableThrowsInVm();
 testCBackendGenerationAndArgs();
 testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma();
 testCBackendBoolAssignmentUsesBoolTrace();
+testCE2EBoolPrintParityWhenGccAvailable();
 testNativeArtifactMetadataSidecar();
 testCrossBuildManifestScript();
 testCTraceSnapshotsWhenGccAvailable();

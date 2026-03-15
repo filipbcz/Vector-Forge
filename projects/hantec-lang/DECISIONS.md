@@ -1,5 +1,18 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — C runtime parity hardening: bool print semantics (RC.2)
+
+- C backend už při `vyblij <bool-expr>` netiskne `1/0`, ale `true/false` přes nový helper `__mulda_print_bool`.
+- `generateC()` přidal lehkou heuristiku `isLikelyBooleanCExpression(...)` (literal `true/false`, bool proměnná, relace, logické operátory, `__mulda_obsahuje(...)`) pro volbu print cesty.
+- Cíl: lepší runtime/debug parity vůči JS/VM větvi bez rozšíření feature scope mimo C branch.
+- Přidány regresní testy:
+  - codegen kontrakt: bool assignment flow používá `__mulda_print_bool((bool)(flag));`
+  - gcc e2e: `testCE2EBoolPrintParityWhenGccAvailable` očekává stdout `false`.
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS (linux-x64 + windows-x64).
+  - Sentinel: maintainability OK — změna je izolovaná v C emitteru + krytá unit/e2e testem.
+  - Hydra: security posture OK — žádná nová privilegia ani externí I/O; změna pouze formátu výstupu bool hodnot.
+
 ## 2026-03-15 — Mulda spec alignment (v0.6.0)
 
 - Jazyk byl sjednocen na schválený název **Mulda** a příponu `.mulda`.
