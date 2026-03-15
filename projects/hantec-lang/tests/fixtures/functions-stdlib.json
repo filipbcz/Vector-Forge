@@ -1,0 +1,5 @@
+{
+  "name": "functions-stdlib",
+  "source": "funkce secti(a, b)\n  vrat a + b\nkonec\ndej n = secti(2, 3)\nspocitej n\nspocitej minimum(n, 10, 1)\nspocitej obsahuje(\"mulda\", \"ul\")",
+  "expectedOutput": ["5", "1", "true"]
+}

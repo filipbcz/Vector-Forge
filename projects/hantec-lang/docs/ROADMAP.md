@@ -21,7 +21,7 @@
 
 ## v0.5 🚧
 - [x] Bytecode prototype + VM runner
-- [ ] Test suite + fixtures
+- [x] Test suite + fixtures
 - [ ] Package publishing strategy
 
 ## v0.8

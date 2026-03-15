@@ -1,0 +1,5 @@
+{
+  "name": "text-and-length",
+  "source": "dej msg = text(42)\nrekni hotovo\nspocitej msg\nspocitej delka(msg)",
+  "expectedOutput": ["hotovo", "42", "2"]
+}

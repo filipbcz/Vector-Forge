@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.5.0 (aktuální)
+## Co je ve v0.5.1 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -31,7 +31,7 @@ Experimentální jazyk **Hantec** + web IDE.
 - `runtime/` — Node runtime wrapper + `hantec` CLI
 - `ide-web/` — jednoduché webové IDE s editorem a výstupem
 - `docs/ROADMAP.md` — plán od v0.1 po v1.0
-- `tests/` — základní transpiler testy
+- `tests/` — transpiler testy + fixture parity testy (JS backend vs bytecode VM)
 - `scripts/dev.sh` — lokální dev workflow
 
 ## Quickstart

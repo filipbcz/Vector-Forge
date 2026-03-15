@@ -8,7 +8,7 @@ Experimentální jazyk (Mulda/Hantec) + web IDE pro rychlé iterace syntaxe a ru
 - Každý běh: návrh → implementace → test/re-test → review (Sentinel/Hydra) → commit/push
 
 ## Stav
-- Verze: `0.5.0`
+- Verze: `0.5.1`
 - Dodáno: základní řízení toku (`kdyz`, `opakuj`, `konec`) + funkce (`funkce`, `vrat`, `konec`) + rozšířená stdlib (`delka`, `cislo`, `text`, `minimum`, `maximum`, `obsahuje`)
-- Nově ve v0.5.0: bytecode prototyp (`.bytecode.json`) + VM runner (`runtime/src/vm.js`) + CLI cesta `hantec run-bc`
-- Otevřené body po v0.5.0: fixture sada + publishing strategie
+- Nově ve v0.5.1: fixture test suite + backend parity kontrola (JS vs bytecode VM) nad `tests/fixtures/*.json`
+- Otevřené body po v0.5.1: publishing strategie

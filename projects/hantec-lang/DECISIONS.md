@@ -48,3 +48,13 @@
 - Test suite rozšířena o integrační test bytecode běhu s funkcí + bloky + stdlib.
 - Důvod: uzavřít první část roadmapy v0.5 (reálný VM prototyp) bez rozbití stávající JS backend kompatibility.
 - Dopad: projekt má dvě spustitelné backend cesty (JS transpile a interní VM), což odemyká další práci na fixture sadě a publikaci.
+
+## 2026-03-15 — v0.5.1 fixture test suite + backend parity checks
+- Přidán fixtures harness (`tests/fixtures.test.js`) načítající JSON scénáře z `tests/fixtures/*.json`.
+- Každý fixture se spouští dvakrát: nad JS backendem (`vm.runInNewContext`) i nad bytecode VM backendem (`runBytecodeObject`) a porovnává stejný očekávaný výstup.
+- Do repozitáře přidány první tři scénáře (`basic-flow`, `functions-stdlib`, `text-and-length`) jako základ rozšiřitelné sady.
+- `npm test` nově běží jak unit testy transpileru, tak fixture parity testy.
+- Sentinel review: změna je modulární (oddělený test harness), bez zásahu do parser/runtime logiky.
+- Hydra security review: test harness používá izolovaný `vm` kontext s timeoutem; neotvírá nové síťové/file capability a nemění existující threat model (`new Function` zůstává pouze ve stávajícím runtime/transpileru).
+- Důvod: uzavřít roadmap bod „Test suite + fixtures“ a průběžně hlídat konzistenci JS vs VM běhu.
+- Dopad: rychlejší regresní kontrola při dalších změnách jazyka i runtime.

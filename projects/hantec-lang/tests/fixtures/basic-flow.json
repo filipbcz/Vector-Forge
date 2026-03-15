@@ -1,0 +1,5 @@
+{
+  "name": "basic-flow",
+  "source": "dej x = 2\nopakuj 3\n  kdyz x > 0\n    spocitej x\n  konec\nkonec",
+  "expectedOutput": ["2", "2", "2"]
+}
