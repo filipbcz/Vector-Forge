@@ -297,9 +297,15 @@ function testNativeArtifactMetadataSidecar() {
 
 function testCrossBuildManifestScript() {
   const projectRoot = path.resolve(__dirname, '..');
+  const script = path.join(projectRoot, 'scripts/build-cross-c.js');
   const source = path.join(projectRoot, 'examples/hello.mulda');
-  const run = spawnSync(process.execPath, [path.join(projectRoot, 'scripts/build-cross-c.js'), source], {
+  const run = spawnSync(process.execPath, [script, source], {
     cwd: projectRoot,
+    encoding: 'utf8'
+  });
+
+  const runFromElsewhere = spawnSync(process.execPath, [script, 'examples/hello.mulda'], {
+    cwd: os.tmpdir(),
     encoding: 'utf8'
   });
 
@@ -318,6 +324,7 @@ function testCrossBuildManifestScript() {
 
   // Script returns non-zero when some toolchain is unavailable (expected in many local envs).
   assert([0, 2].includes(run.status || 0));
+  assert([0, 2].includes(runFromElsewhere.status || 0));
 }
 
 function testCTraceSnapshotsWhenGccAvailable() {

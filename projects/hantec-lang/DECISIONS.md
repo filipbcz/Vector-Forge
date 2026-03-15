@@ -210,3 +210,13 @@
   - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS.
   - Sentinel: maintainability OK — změna je lokalizovaná v C emitteru, s minimálním zásahem do ostatních backendů, krytá unit+e2e testem.
   - Hydra: security posture OK — žádná nová privilegia ani externí I/O; pouze zpřesnění diagnostických trace dat.
+
+## 2026-03-15 — Cross-build script stability: project-root relative input resolution (RC.2)
+
+- `scripts/build-cross-c.js` nově resolveduje relativní vstupní `.mulda` cestu vůči `projectRoot` (ne vůči aktuálnímu `cwd` shellu).
+- Dopad: `npm run build:c:cross -- examples/hello.mulda` i přímé volání skriptu funguje deterministicky i když je skript spuštěn mimo kořen repa.
+- Rozšířen regresní test `testCrossBuildManifestScript` o scénář `cwd=os.tmpdir()` + relativní vstup (`examples/hello.mulda`).
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS.
+  - Sentinel: maintainability OK — malá, izolovaná stabilizační změna bez dopadu na parser/runtime semantics.
+  - Hydra: security posture OK — bez nové attack surface, pouze robustnější práce s cestami při lokálním build orchestration.

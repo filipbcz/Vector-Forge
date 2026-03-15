@@ -23,7 +23,9 @@ function main() {
     process.exit(1);
   }
 
-  const sourceFile = path.resolve(input);
+  const sourceFile = path.isAbsolute(input)
+    ? input
+    : path.resolve(projectRoot, input);
   if (!fs.existsSync(sourceFile)) {
     console.error(`Source file not found: ${sourceFile}`);
     process.exit(1);
