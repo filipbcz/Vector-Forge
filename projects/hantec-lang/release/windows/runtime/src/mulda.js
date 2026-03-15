@@ -70,6 +70,18 @@ function resolveCToolchain(platform = 'linux-x64') {
   return null;
 }
 
+function getCCompileArgs(toolchain, entryCFile, outputFile) {
+  const args = [entryCFile, '-std=c11', '-O2'];
+
+  // Keep Windows PE headers deterministic when cross-compiling via MinGW.
+  if (toolchain.targetLabel === 'windows-x64') {
+    args.push('-Wl,--no-insert-timestamp');
+  }
+
+  args.push('-o', outputFile);
+  return args;
+}
+
 function compileCToNative(entryCFile, outputFile, options = {}) {
   const toolchain = resolveCToolchain(options.platform || 'linux-x64');
   if (!toolchain) {
@@ -86,7 +98,7 @@ function compileCToNative(entryCFile, outputFile, options = {}) {
     return 1;
   }
 
-  const compile = spawnSync(toolchain.cc, [entryCFile, '-std=c11', '-O2', '-o', outputFile], { stdio: 'inherit' });
+  const compile = spawnSync(toolchain.cc, getCCompileArgs(toolchain, entryCFile, outputFile), { stdio: 'inherit' });
   return compile.status || 0;
 }
 
@@ -274,4 +286,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata };
+module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs };

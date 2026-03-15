@@ -1,5 +1,19 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.5 release-copy sync + full gate re-validation (C branch)
+
+- Release runtime copies byly dorovnány na aktuální C compile orchestrator (`runtime/src/mulda.js` -> `release/linux/runtime/src/mulda.js`, `release/windows/runtime/src/mulda.js`), aby installer payload neobsahoval stale variantu bez `getCCompileArgs(...)` hardeningu.
+- Proveden kompletní stabilizační/gate cyklus bez rozšíření JS/VM scope:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run release:rc`
+  - `npm run check:installers`
+  - `npm run audit:reproducibility`
+- Nový RC bundle: `release/bundles/rc-1.0.0-rc.5-20260315T203329Z`.
+- Repro audit: strict artefakty zůstávají stabilní; očekávaný drift je pouze u timestampovaných manifestů (a obecně windows PE timestamp class drift je nadále tolerated).
+- Sentinel gate: maintainability OK — změna je čistě sync release copy + re-validation, bez zásahu do parser/runtime API.
+- Hydra gate: security posture OK — žádná nová privilegia ani externí integrace; pouze rebuild + integrity/repro ověření.
+
 ## 2026-03-15 — RC.5 stability hardening: MinGW deterministic-linker flag attempt (C branch)
 
 - C compile pipeline (`runtime/src/mulda.js`) dostala nový helper `getCCompileArgs(...)` a centralizaci compile argů pro Linux/Windows target.
