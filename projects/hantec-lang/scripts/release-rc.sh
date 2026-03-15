@@ -9,6 +9,7 @@ SOURCE_FILE="${2:-examples/hello.mulda}"
 BASE_NAME="$(basename "$SOURCE_FILE" .mulda)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BUNDLE_DIR="release/bundles/rc-${VERSION}-${STAMP}"
+KEEP_BUNDLES="${RELEASE_KEEP_BUNDLES:-5}"
 
 log() { printf '[release-rc] %s\n' "$*"; }
 need_file() { [[ -f "$1" ]] || { echo "Missing required file: $1" >&2; exit 1; }; }
@@ -76,5 +77,17 @@ mkdir -p "$BUNDLE_DIR"
 cp -R release/linux "$BUNDLE_DIR/"
 cp -R release/windows "$BUNDLE_DIR/"
 cp release/manifest.json release/manifest.source.json release/checksums.sha256 release/install-linux.sh release/install-windows.ps1 "$BUNDLE_DIR/"
+
+if [[ "$KEEP_BUNDLES" =~ ^[0-9]+$ ]] && (( KEEP_BUNDLES > 0 )); then
+  mapfile -t version_bundles < <(ls -1dt "release/bundles/rc-${VERSION}-"* 2>/dev/null || true)
+  if (( ${#version_bundles[@]} > KEEP_BUNDLES )); then
+    for old_bundle in "${version_bundles[@]:KEEP_BUNDLES}"; do
+      rm -rf "$old_bundle"
+      log "Pruned old bundle: $old_bundle"
+    done
+  fi
+else
+  log "Skipping bundle pruning (invalid RELEASE_KEEP_BUNDLES=$KEEP_BUNDLES)"
+fi
 
 log "RC bundle ready: $BUNDLE_DIR"

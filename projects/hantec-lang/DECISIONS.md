@@ -178,3 +178,13 @@
   - Sentinel: změny jsou artifact-only refresh + synchronizace release copy compileru, bez rozšíření scope mimo C větev.
   - Hydra: bez nové attack surface; pouze re-build binárek/manifestů/checksumů, zachovaný fail-fast toolchain model.
 - Výsledek: aktualizovaný RC bundle `release/bundles/rc-1.0.0-rc.2-20260315T183323Z` a nové checksum/manifest metadata pro Linux+Windows artefakty.
+
+## 2026-03-15 — RC packaging hygiene: automatic old-bundle pruning (C/release branch)
+
+- `scripts/release-rc.sh` nově podporuje `RELEASE_KEEP_BUNDLES` (default `5`) a po vytvoření nového bundle automaticky maže starší `release/bundles/rc-<version>-*` adresáře nad limit.
+- Cíl: stabilita a udržitelnost release větve bez nekonečného růstu artefaktů při opakovaných RC bězích.
+- README doplněno o sekci **RC release packaging** včetně ukázky override (`RELEASE_KEEP_BUNDLES=3`).
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS, `RELEASE_KEEP_BUNDLES=2 bash scripts/release-rc.sh` PASS + očekávané prune logy.
+  - Sentinel: změna je izolovaná na release skript (operational hygiene), bez dopadu na parser/compiler/runtime API.
+  - Hydra: nízké riziko; mazání je scoped jen na verzi `rc-<version>-*`, bez globálního čistění mimo release bundles.

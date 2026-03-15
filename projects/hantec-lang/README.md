@@ -102,6 +102,16 @@ Při `--target c --platform ...` se po úspěšném překladu binárky vytvoří
 
 Pokud některý compiler chybí, build vrátí `[TOOLCHAIN_MISSING]` a doporučený instalační příkaz.
 
+## RC release packaging
+
+```bash
+bash scripts/release-rc.sh
+# optional: keep only N newest bundles for current version
+RELEASE_KEEP_BUNDLES=3 bash scripts/release-rc.sh
+```
+
+Skript po dokončení automaticky prořeže staré `release/bundles/rc-<version>-*` adresáře (default `5` posledních běhů), aby release větev nebobtnala artifacty.
+
 ## Upgrade / migration
 
 - v0.9.x -> v1.0.0-rc.2: `docs/MIGRATION_0.9_to_1.0-rc.md`
