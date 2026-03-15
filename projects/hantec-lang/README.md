@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.5.2 (aktuální)
+## Co je ve v0.5.3 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -22,9 +22,11 @@ Experimentální jazyk **Hantec** + web IDE.
 - Chybové hlášky ze transpileru obsahují `line/col`
 - CLI příkaz `hantec run file.hantec` (JS runtime)
 - CLI příkaz `hantec run-bc file.hantec` (bytecode VM runtime)
+- Debug/trace režim pro bytecode běh: `hantec run-bc --trace file.hantec` (alias `--debug`)
 - Bytecode prototyp output `dist/*.bytecode.json` s instrukcemi pro interní VM
 - Web IDE (compile + run) + základní syntax highlighting (keywords/čísla/komentáře)
 - Publishing strategy v0.5.2: `npm run pack:check` + `prepublishOnly` gate (`npm test` + package dry-run validace)
+- Runtime trace loguje instrukce VM (`DECLARE`, `IF`, `REPEAT`, `CALL`, `RETURN`) do stderr bez změny stdout programu
 
 ## Struktura
 
@@ -48,9 +50,11 @@ npm test
 ```bash
 npm run hantec -- run examples/hello.hantec
 npm run hantec -- run-bc examples/hello.hantec
+npm run hantec -- run-bc --trace examples/hello.hantec
 # nebo po npm link:
 # hantec run examples/hello.hantec
 # hantec run-bc examples/hello.hantec
+# hantec run-bc --debug examples/hello.hantec
 ```
 
 ## Security note (v0.5 VM prototype)

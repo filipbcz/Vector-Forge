@@ -1,6 +1,6 @@
 {
   "name": "hantec-lang",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": true,
   "description": "Scaffold for Hantec language + web IDE",
   "bin": {

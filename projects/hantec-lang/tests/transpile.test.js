@@ -1,6 +1,8 @@
 const assert = require('assert');
 const { transpileHantec, compileHantec } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
+const { parseArgs } = require('../runtime/src/run');
+const { parseCommandArgs } = require('../runtime/src/hantec');
 
 function testVariablesAndPrint() {
   const source = [
@@ -159,6 +161,33 @@ function testBytecodeVmRunner() {
   assert.deepStrictEqual(lines, ['5', '5', 'true']);
 }
 
+function testBytecodeTraceMode() {
+  const { bytecode } = compileHantec(['dej x = 2', 'spocitej x + 1'].join('\n'));
+  const traces = [];
+  const output = [];
+
+  runBytecodeObject(bytecode, {
+    stdout: (line) => output.push(String(line)),
+    trace: (line) => traces.push(String(line))
+  });
+
+  assert.deepStrictEqual(output, ['3']);
+  assert(traces.some((line) => line.includes('DECLARE')));
+  assert(traces.some((line) => line.includes('PRINT_EXPR')));
+}
+
+function testRuntimeArgParsers() {
+  const runtimeParsed = parseArgs(['--trace', 'dist/demo.bytecode.json']);
+  assert.strictEqual(runtimeParsed.options.trace, true);
+  assert.deepStrictEqual(runtimeParsed.positional, ['dist/demo.bytecode.json']);
+
+  const hantecParsed = parseCommandArgs(['--debug', 'examples/hello.hantec']);
+  assert.strictEqual(hantecParsed.options.trace, true);
+  assert.strictEqual(hantecParsed.inputFile, 'examples/hello.hantec');
+
+  assert.throws(() => parseCommandArgs(['--wat', 'examples/hello.hantec']), /Unknown flag/);
+}
+
 testVariablesAndPrint();
 testControlFlowBlocks();
 testFunctionDeclarationAndReturn();
@@ -171,4 +200,6 @@ testInvalidFunctionParameterError();
 testStdlibPreludeAndUsage();
 testStdlibArgumentValidation();
 testBytecodeVmRunner();
+testBytecodeTraceMode();
+testRuntimeArgParsers();
 console.log('tests passed');

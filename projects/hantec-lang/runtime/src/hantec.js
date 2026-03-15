@@ -8,10 +8,10 @@ const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
 const runner = path.join(projectRoot, 'runtime/src/run.js');
 
 function printUsage() {
-  console.error('Usage: hantec run <file.hantec> | hantec run-bc <file.hantec>');
+  console.error('Usage: hantec run [--trace|--debug] <file.hantec> | hantec run-bc [--trace|--debug] <file.hantec>');
 }
 
-function runFile(inputFile, mode = 'js') {
+function runFile(inputFile, mode = 'js', options = {}) {
   const resolved = path.resolve(inputFile);
   if (!fs.existsSync(resolved)) {
     console.error(`File not found: ${resolved}`);
@@ -29,19 +29,56 @@ function runFile(inputFile, mode = 'js') {
     ? outputFile.replace(/\.js$/, '.bytecode.json')
     : outputFile;
 
-  const r = spawnSync(process.execPath, [runner, entryFile], { stdio: 'inherit' });
+  const runnerArgs = [runner];
+  if (options.trace) {
+    runnerArgs.push('--trace');
+  }
+  runnerArgs.push(entryFile);
+
+  const r = spawnSync(process.execPath, runnerArgs, { stdio: 'inherit' });
   return r.status || 0;
 }
 
-function main() {
-  const [, , command, inputFile] = process.argv;
+function parseCommandArgs(argv) {
+  const args = [...argv];
+  const options = { trace: false };
 
-  if (command === 'run' && inputFile) {
-    process.exit(runFile(inputFile, 'js'));
+  while (args[0] && args[0].startsWith('--')) {
+    const flag = args.shift();
+    if (flag === '--trace' || flag === '--debug') {
+      options.trace = true;
+      continue;
+    }
+    throw new Error(`Unknown flag: ${flag}`);
   }
 
-  if (command === 'run-bc' && inputFile) {
-    process.exit(runFile(inputFile, 'bytecode'));
+  return { options, inputFile: args[0] };
+}
+
+function main() {
+  const [, , command, ...rest] = process.argv;
+
+  try {
+    if (command === 'run') {
+      const parsed = parseCommandArgs(rest);
+      if (!parsed.inputFile) {
+        printUsage();
+        process.exit(1);
+      }
+      process.exit(runFile(parsed.inputFile, 'js', parsed.options));
+    }
+
+    if (command === 'run-bc') {
+      const parsed = parseCommandArgs(rest);
+      if (!parsed.inputFile) {
+        printUsage();
+        process.exit(1);
+      }
+      process.exit(runFile(parsed.inputFile, 'bytecode', parsed.options));
+    }
+  } catch (err) {
+    console.error(err.message || String(err));
+    process.exit(1);
   }
 
   printUsage();
@@ -52,4 +89,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { runFile };
+module.exports = { runFile, parseCommandArgs };

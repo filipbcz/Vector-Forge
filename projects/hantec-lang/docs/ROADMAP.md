@@ -26,7 +26,7 @@
 
 ## v0.8
 - Cross-platform binary/runtime packaging
-- Debug mode and traces
+- Debug mode and traces *(MVP trace v0.5.3 hotovo, zbývá rozšířit i pro JS backend + structured trace output)*
 - LSP prototype for editor integration
 
 ## v1.0

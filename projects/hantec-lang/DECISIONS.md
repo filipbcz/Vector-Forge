@@ -67,3 +67,13 @@
 - Roadmap bod "Package publishing strategy" uzavřen ve `docs/ROADMAP.md`.
 - Sentinel review: změna je maintainable (malý validátor v jednom skriptu, deterministické podmínky, bez zásahu do parser/runtime logiky).
 - Hydra security review: zmenšený balíček snižuje attack surface (žádné test fixture nebo build artefakty v distribuci); gate neotevírá nové síťové capability ani tajné vstupy.
+
+## 2026-03-15 — v0.5.3 bytecode debug/trace mode (MVP)
+- Runtime VM (`runtime/src/vm.js`) nově podporuje trace hook přes `options.trace`; při zapnutí loguje průchod instrukcemi (`DECLARE`, `PRINT_*`, `IF`, `REPEAT`, `CALL`, `RETURN`) včetně line/depth metadat.
+- Runtime entrypoint (`runtime/src/run.js`) přidal argument parser pro `--trace` a alias `--debug`; trace je aktivní jen pro `.bytecode.json` běh a nemění JS backend path.
+- CLI (`runtime/src/hantec.js`) propaguje `--trace/--debug` z `hantec run-bc ...` do runtime runneru.
+- Testy rozšířeny o ověření trace režimu a parsování flagů (`tests/transpile.test.js`).
+- Sentinel review: změna je izolovaná v runtime vrstvě, bez zásahu do parseru a syntaxe jazyka; veřejné API zůstává kompatibilní.
+- Hydra security review: trace vypisuje pouze interní metadata instrukcí, neotvírá síťové nebo file capability; evaluace výrazů přes `new Function` zůstává beze změny (stávající trusted-input model).
+- Důvod: posunout roadmap bod „Debug mode and traces“ po malém, ověřitelném kroku bez rozbití parity testů.
+- Dopad: vývoj a debugging VM backendu je výrazně rychlejší při zachování stejného programového stdout.
