@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Mulda** + web IDE.
 
-## Schválená syntaxe (v0.7.0)
+## Schválená syntaxe (v0.7.1)
 
 - souborová přípona: `.mulda`
 - start programu: `Hokna`
@@ -20,12 +20,15 @@ Experimentální jazyk **Mulda** + web IDE.
 - control flow/function: `kdyz`, `funkce`
 - CLI: `hantec` (proxy na `mulda`)
 
-## Co je ve v0.7.0
+## Co je ve v0.7.1
 
 - Modernizované web IDE (single-page layout):
-  - horní debug toolbar (Run/Pause/Step/Continue)
+  - horní debug toolbar (Run/Pause/Step/Continue + AI napovědět)
   - levý editor s gutterem a breakpoints
-  - pravé debug panely (output / stack trace timeline / variables)
+  - pravé debug panely (AI hint / output / stack trace timeline / variables)
+- AI hinting endpoint `POST /ai/hint` (server-side), bez hardcoded secretů ve frontendu
+- Ctrl+Space shortcut pro AI nápovědu + akce **Apply** / **Insert as comment**
+- AI fallback režim: IDE funguje i bez model endpointu nebo při timeoutu
 - Vylepšený syntax highlight pro Mulda keywordy
 - Block pairing vizualizace (`Hokna`, `dyz`, `opakuj`, `funkcicka` ↔ `konec`) + warning pro unmatched `konec`
 - Breakpointy klikem v gutteru (in-memory per session)
@@ -41,6 +44,22 @@ npm run demo
 npm test
 npm run ide
 ```
+
+## AI hinting konfigurace
+
+`ide-web/server.js` čte konfiguraci z ENV (viz `ide-web/.env.example`):
+
+- `AI_ENABLED=true|false` – globální zapnutí AI nápovědy
+- `AI_MODEL=openai-codex/gpt-5.3-codex` – preferovaný model
+- `AI_TIMEOUT_MS=4500` – timeout volání modelu
+
+Volitelné:
+- `AI_ENDPOINT` – custom OpenAI-compatible endpoint
+- `AI_API_KEY` – API klíč pouze server-side
+
+Fallback chování:
+- když je AI vypnutá, endpoint vrátí lokální šablonovou nápovědu;
+- když endpoint timeoutne/spadne, IDE se nezablokuje a vrátí safe fallback response.
 
 ## CLI
 

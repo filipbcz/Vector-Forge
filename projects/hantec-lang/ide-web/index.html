@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mulda IDE v0.7.0</title>
+  <title>Mulda IDE v0.7.1</title>
   <style>
     :root {
       --bg: #0b1020;
@@ -55,8 +55,10 @@
 
     .editor-status { border-top:1px solid var(--line); padding:8px 12px; color:var(--muted); font-size:12px; display:flex; gap:14px; flex-wrap:wrap; }
 
-    .debug-area { min-height:0; display:grid; grid-template-rows: 220px 1fr 1fr; }
+    .debug-area { min-height:0; display:grid; grid-template-rows: 170px 170px 1fr 1fr; }
     .panel { min-height:0; border-bottom:1px solid var(--line); background: var(--panel-2); display:flex; flex-direction:column; }
+    .ai-actions { display:flex; gap:8px; padding:8px 12px; border-top:1px solid var(--line); }
+    .ai-meta { color: var(--muted); font-size: 12px; padding: 0 12px 8px; }
     .panel h3 { margin:0; padding:10px 12px; font-size:13px; color:var(--muted); border-bottom:1px solid var(--line); }
     .panel pre, .panel .content { margin:0; padding:10px 12px; overflow:auto; white-space:pre-wrap; word-break:break-word; flex:1; }
     .stack-item { padding:6px 4px; border-bottom:1px dashed #22344f; }
@@ -72,6 +74,7 @@
       <button id="pauseBtn" disabled>Pause</button>
       <button id="stepBtn" disabled>Step</button>
       <button id="continueBtn" disabled>Continue</button>
+      <button id="aiHintBtn">AI napovědět</button>
       <span id="stateBadge" class="badge">idle</span>
       <span id="pairBadge" class="badge">pairs: 0</span>
       <span id="warnBadge" class="badge">warnings: 0</span>
@@ -83,7 +86,7 @@
           <pre id="gutter"></pre>
           <div class="editor-wrap">
             <pre id="highlight" class="editor-layer" aria-hidden="true"></pre>
-            <textarea id="src" class="editor-layer" spellcheck="false"># Mulda v0.7.0 debug IDE demo
+            <textarea id="src" class="editor-layer" spellcheck="false"># Mulda v0.7.1 debug IDE demo
 Hokna
 funkcicka secti(a, b)
   dej soucet = a + b
@@ -106,6 +109,15 @@ konec</textarea>
       </section>
 
       <section class="debug-area">
+        <div class="panel">
+          <h3>AI hint panel</h3>
+          <pre id="aiHint">Stiskni Ctrl+Space nebo klikni na „AI napovědět“.</pre>
+          <div class="ai-meta" id="aiMeta">Stav: idle</div>
+          <div class="ai-actions">
+            <button id="aiApplyBtn" disabled>Apply</button>
+            <button id="aiCommentBtn" disabled>Insert as comment</button>
+          </div>
+        </div>
         <div class="panel"><h3>Program output</h3><pre id="out">Klikni Run…</pre></div>
         <div class="panel"><h3>Stack trace timeline</h3><div class="content" id="stack"></div></div>
         <div class="panel"><h3>Variables / Watch (MVP)</h3><div class="content" id="vars"></div></div>
@@ -122,6 +134,11 @@ konec</textarea>
     const pauseBtn = document.getElementById('pauseBtn');
     const stepBtn = document.getElementById('stepBtn');
     const continueBtn = document.getElementById('continueBtn');
+    const aiHintBtn = document.getElementById('aiHintBtn');
+    const aiApplyBtn = document.getElementById('aiApplyBtn');
+    const aiCommentBtn = document.getElementById('aiCommentBtn');
+    const aiHintEl = document.getElementById('aiHint');
+    const aiMetaEl = document.getElementById('aiMeta');
     const src = document.getElementById('src');
     const out = document.getElementById('out');
     const highlight = document.getElementById('highlight');
@@ -137,6 +154,7 @@ konec</textarea>
     let traceEvents = [];
     let stepIndex = -1;
     let playTimer = null;
+    let lastHint = null;
 
     function escapeHtml(value) {
       return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -262,6 +280,56 @@ konec</textarea>
       renderEditor();
     }
 
+    function getCursorPos() {
+      const before = src.value.slice(0, src.selectionStart);
+      const lines = before.split('\n');
+      return { cursorLine: lines.length, cursorCol: lines[lines.length - 1].length + 1 };
+    }
+
+    function insertAtCursor(text) {
+      const start = src.selectionStart;
+      const end = src.selectionEnd;
+      src.value = `${src.value.slice(0, start)}${text}${src.value.slice(end)}`;
+      src.selectionStart = src.selectionEnd = start + text.length;
+      renderEditor();
+      src.focus();
+    }
+
+    async function requestAiHint(mode = 'inline') {
+      aiHintBtn.disabled = true;
+      aiMetaEl.textContent = 'Stav: načítám…';
+      aiHintEl.textContent = 'Generuji návrh…';
+
+      const payload = {
+        source: src.value,
+        ...getCursorPos(),
+        mode
+      };
+
+      try {
+        const res = await fetch('/ai/hint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        lastHint = data;
+
+        const alternatives = Array.isArray(data.alternatives) ? data.alternatives.filter(Boolean) : [];
+        aiHintEl.textContent = [data.suggestion || '', alternatives.length ? '\nAlternativy:\n- ' + alternatives.join('\n- ') : ''].join('');
+        aiMetaEl.textContent = `Stav: hotovo | confidence ${(Number(data.confidence || 0) * 100).toFixed(0)}% | ${data.notes || ''}`;
+        aiApplyBtn.disabled = !data.suggestion;
+        aiCommentBtn.disabled = !data.suggestion;
+      } catch (err) {
+        aiHintEl.textContent = 'AI hint není dostupný. IDE běží dál bez AI.';
+        aiMetaEl.textContent = `Stav: fallback (${err.message || err})`;
+        aiApplyBtn.disabled = true;
+        aiCommentBtn.disabled = true;
+      } finally {
+        aiHintBtn.disabled = false;
+      }
+    }
+
     function stopPlayback() {
       if (playTimer) clearInterval(playTimer);
       playTimer = null;
@@ -311,6 +379,12 @@ konec</textarea>
         src.value = `${src.value.slice(0, start)}  ${src.value.slice(end)}`;
         src.selectionStart = src.selectionEnd = start + 2;
         renderEditor();
+        return;
+      }
+
+      if (event.ctrlKey && event.code === 'Space') {
+        event.preventDefault();
+        requestAiHint('inline');
       }
     });
 
@@ -383,6 +457,20 @@ konec</textarea>
 
     continueBtn.addEventListener('click', play);
     pauseBtn.addEventListener('click', stopPlayback);
+
+    aiHintBtn.addEventListener('click', () => requestAiHint('inline'));
+    aiApplyBtn.addEventListener('click', () => {
+      if (!lastHint?.suggestion) return;
+      insertAtCursor(lastHint.suggestion);
+    });
+    aiCommentBtn.addEventListener('click', () => {
+      if (!lastHint?.suggestion) return;
+      const commented = lastHint.suggestion
+        .split('\n')
+        .map(line => `# ${line}`)
+        .join('\n');
+      insertAtCursor(commented + '\n');
+    });
 
     renderEditor();
   </script>
