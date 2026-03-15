@@ -7,7 +7,7 @@ const { spawnSync } = require('child_process');
 const { transpileMulda, compileMulda } = require('../compiler/src/transpile');
 const { runBytecodeObject } = require('../runtime/src/vm');
 const { parseArgs } = require('../runtime/src/run');
-const { parseCommandArgs, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs } = require('../runtime/src/mulda');
+const { parseCommandArgs, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs, resolveBuildTimestamp } = require('../runtime/src/mulda');
 const { resolveSourceFileInput } = require('../scripts/build-cross-c');
 
 function testVariablesAndPrint() {
@@ -327,6 +327,20 @@ function testNativeArtifactMetadataSidecar() {
   assert.strictEqual(typeof metadata.generatedAt, 'string');
 }
 
+function testBuildTimestampRespectsSourceDateEpoch() {
+  const prev = process.env.SOURCE_DATE_EPOCH;
+  process.env.SOURCE_DATE_EPOCH = '1700000000';
+  try {
+    assert.strictEqual(resolveBuildTimestamp(), '2023-11-14T22:13:20.000Z');
+  } finally {
+    if (typeof prev === 'string') {
+      process.env.SOURCE_DATE_EPOCH = prev;
+    } else {
+      delete process.env.SOURCE_DATE_EPOCH;
+    }
+  }
+}
+
 function testCrossBuildManifestScript() {
   const projectRoot = path.resolve(__dirname, '..');
   const script = path.join(projectRoot, 'scripts/build-cross-c.js');
@@ -542,6 +556,7 @@ testCBackendCallArgumentSplitHandlesEscapedQuoteAndComma();
 testCBackendBoolAssignmentUsesBoolTrace();
 testCE2EBoolPrintParityWhenGccAvailable();
 testNativeArtifactMetadataSidecar();
+testBuildTimestampRespectsSourceDateEpoch();
 testCrossBuildManifestScript();
 testCrossBuildManifestScriptRejectsNonMuldaInput();
 testReproAuditIgnoresMixedRcTagBundlesForGaVersion();

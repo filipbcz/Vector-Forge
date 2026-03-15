@@ -102,6 +102,20 @@ function compileCToNative(entryCFile, outputFile, options = {}) {
   return compile.status || 0;
 }
 
+function resolveBuildTimestamp() {
+  const sourceDateEpoch = process.env.SOURCE_DATE_EPOCH;
+  if (!sourceDateEpoch) {
+    return new Date().toISOString();
+  }
+
+  const epochSeconds = Number.parseInt(sourceDateEpoch, 10);
+  if (!Number.isFinite(epochSeconds) || epochSeconds < 0) {
+    return new Date().toISOString();
+  }
+
+  return new Date(epochSeconds * 1000).toISOString();
+}
+
 function writeNativeArtifactMetadata({ sourceFile, cFile, artifactFile, toolchain, platform }) {
   const metadataPath = `${artifactFile}.metadata.json`;
   const metadata = {
@@ -110,7 +124,7 @@ function writeNativeArtifactMetadata({ sourceFile, cFile, artifactFile, toolchai
     backend: 'c',
     platform,
     compiler: toolchain.cc,
-    generatedAt: new Date().toISOString(),
+    generatedAt: resolveBuildTimestamp(),
     sourceFile,
     cFile,
     artifactFile
@@ -286,4 +300,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs };
+module.exports = { runFile, compileFile, parseCommandArgs, compileAndRunC, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata, getCCompileArgs, resolveBuildTimestamp };

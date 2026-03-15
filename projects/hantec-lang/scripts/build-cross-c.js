@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { compileFile, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata } = require('../runtime/src/mulda');
+const { compileFile, compileCToNative, resolveCToolchain, writeNativeArtifactMetadata, resolveBuildTimestamp } = require('../runtime/src/mulda');
 
 const projectRoot = path.resolve(__dirname, '..');
 const packageJson = require(path.join(projectRoot, 'package.json'));
@@ -117,7 +117,7 @@ function main() {
   const manifest = {
     lang: 'mulda',
     version: packageJson.version,
-    generatedAt: new Date().toISOString(),
+    generatedAt: resolveBuildTimestamp(),
     sourceFile,
     cSource,
     cSourceSha256: fs.existsSync(cSource) ? sha256File(cSource) : null,
