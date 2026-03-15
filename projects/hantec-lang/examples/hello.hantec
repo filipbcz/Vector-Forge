@@ -1,4 +1,7 @@
-# Hantec v0.2 demo
+# Hantec v0.4.3 demo
 rekni Nazdar z Hantecu!
 dej x = 21 + 21
 spocitej x
+spocitej minimum(10, "3", x)
+spocitej maximum(10, "3", x)
+spocitej obsahuje("mulda", "ul")

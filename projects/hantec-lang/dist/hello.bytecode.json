@@ -1,6 +1,6 @@
 {
-  "version": "0.4.2",
+  "version": "0.4.3",
   "target": "node",
   "note": "bytecode backend placeholder",
-  "bytes": 617
+  "bytes": 1353
 }

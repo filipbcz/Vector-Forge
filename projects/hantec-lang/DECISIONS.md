@@ -30,3 +30,12 @@
 - Marker transpileru/bytecode placeholderu byl posunut na `v0.4.2`.
 - Důvod: uzavřít „Standard library basics“ bod roadmapy konzistentně s dosavadní architekturou (line-based parser + JS backend).
 - Dopad: skripty mohou používat základní utility bez ručního psaní helper funkcí v každém programu.
+
+## 2026-03-15 — v0.4.3 rozšíření stdlib o agregační a membership helpery
+- Do stdlib prelude přidány funkce `minimum(...values)`, `maximum(...values)` a `obsahuje(container, needle)`.
+- `minimum/maximum` interně používají `cislo` pro konzistentní konverzi a fail-fast chování na nečíselných vstupech.
+- U obou agregačních funkcí je explicitní guard na prázdné argumenty (`requires at least one argument`) kvůli čitelnému runtime erroru.
+- `obsahuje` podporuje string/array přes `.includes(...)` a objekty přes `hasOwnProperty`; pro ostatní typy vrací `false`.
+- Marker transpileru/bytecode placeholderu byl posunut na `v0.4.3` a příklady/testy byly rozšířeny o nové helpery.
+- Důvod: navázat na otevřený bod po v0.4.2 (rozšíření stdlib) bez rozbití jednoduchého line-based kompilátoru.
+- Dopad: jazyk má praktičtější vestavěné utility pro běžné skriptovací scénáře v CLI i IDE.

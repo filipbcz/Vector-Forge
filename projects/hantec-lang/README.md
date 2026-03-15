@@ -2,7 +2,7 @@
 
 Experimentální jazyk **Hantec** + web IDE.
 
-## Co je ve v0.4.2 (aktuální)
+## Co je ve v0.4.3 (aktuální)
 
 - `dej x = ...` pro deklaraci proměnných
 - `rekni ...` pro textový výstup
@@ -12,10 +12,13 @@ Experimentální jazyk **Hantec** + web IDE.
   - `opakuj <pocet>` ... `konec`
   - `funkce <name>(<params>)` ... `konec`
 - Návratová hodnota přes `vrat <expr>` uvnitř `funkce`
-- Základní stdlib funkce (MVP):
+- Základní stdlib funkce:
   - `delka(x)` — délka stringu/pole, počet klíčů objektu
   - `cislo(x)` — převod na číslo (s chybou při neplatné hodnotě)
   - `text(x)` — převod na text
+  - `minimum(...x)` — minimum přes číselné argumenty (včetně číslo-like stringů)
+  - `maximum(...x)` — maximum přes číselné argumenty
+  - `obsahuje(container, needle)` — `true/false` pro substring, položku v poli nebo klíč v objektu
 - Chybové hlášky ze transpileru obsahují `line/col`
 - CLI příkaz `hantec run file.hantec`
 - Web IDE (compile + run) + základní syntax highlighting (keywords/čísla/komentáře)
