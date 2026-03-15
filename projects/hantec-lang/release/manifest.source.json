@@ -1,7 +1,7 @@
 {
   "lang": "mulda",
   "version": "1.0.0-rc.4",
-  "generatedAt": "2026-03-15T20:11:03.355Z",
+  "generatedAt": "2026-03-15T20:13:22.392Z",
   "sourceFile": "/home/ubuntu/vector-forge/projects/hantec-lang/examples/hello.mulda",
   "cSource": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello.c",
   "cSourceSha256": "a75b103bdb5bc1aee33d89c24c7ad0700203a20823fabf11d26a35288e277883",
@@ -11,16 +11,16 @@
       "artifact": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-linux-x64",
       "sha256": "b2d1c3b0b6986996913673996bf34be2e6963e7511d411aca7e872f113ad8a11",
       "metadata": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-linux-x64.metadata.json",
-      "metadataSha256": "fcc0e458fd0676220f2ea5dd8d8d676517d8d3f1b471a84ddb174775896d8caa",
+      "metadataSha256": "e976cb3b02fae90d7ba36928ba8aa8fe1c1ef1795a9092cc6c469f4b2e270304",
       "compiler": "gcc",
       "recommendation": null
     },
     "windows-x64": {
       "status": "ok",
       "artifact": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-windows-x64.exe",
-      "sha256": "b5ca605d0fcf073980524e7763f38165d82aa44408ba055f84202839603d3f04",
+      "sha256": "8fc69bccca9bb365c60cddb763b2e72de8e9b15570ac298f28b059a9995823bf",
       "metadata": "/home/ubuntu/vector-forge/projects/hantec-lang/dist/hello-windows-x64.exe.metadata.json",
-      "metadataSha256": "3ef760aa1f0818f360eb63b0c90bbaeaf11386e32f5148057ccb4db48d01e048",
+      "metadataSha256": "3d942af5c0e96e611dbf3dd2d78e6a4c7dbdb0b90330a5319b435e50c955915e",
       "compiler": "x86_64-w64-mingw32-gcc",
       "recommendation": null
     }

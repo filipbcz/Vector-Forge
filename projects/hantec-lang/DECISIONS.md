@@ -1,5 +1,17 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-15 — RC.4 stability re-validation + release artifact refresh (C branch)
+
+- Proveden celý stabilizační cyklus v C-first větvi bez rozšiřování JS/VM scope:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run release:rc`
+- Cross-build Linux/Windows je znovu zelený a release integrity gate (`sha256sum -c release/checksums.sha256`) prošel.
+- Vygenerován nový release bundle: `release/bundles/rc-1.0.0-rc.4-20260315T201317Z`.
+- Obnoveny auditní artefakty pro RC.4 (`dist/*.metadata.json`, `dist/*.release-manifest.json`, `release/manifest*.json`, `release/checksums.sha256`, windows payload binárka).
+- Sentinel gate: maintainability OK — změny jsou artifact-refresh a process re-validation bez zásahu do parser/runtime API.
+- Hydra gate: security posture OK — žádná nová privilegia, síťové integrace ani attack-surface změny; pouze rebuild + integrity ověření.
+
 ## 2026-03-15 — v1.0.0-rc.4 release integrity + installer hardening (C branch)
 
 - Přidán nový fail-fast integrity gate `scripts/verify-release-integrity.sh`:
