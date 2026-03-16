@@ -1,5 +1,290 @@
 # DECISIONS.md — mulda-lang
 
+## 2026-03-16 — GA post-freeze re-validation pass (C branch, autonomy cron, 01:03Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda`
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nový GA bundle z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260316T010311Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow je konzistentní a auditovatelný, bez změn compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-16 — GA post-freeze re-validation pass (C branch, autonomy cron, 00:43Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda`
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nový GA bundle z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260316T004316Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow je konzistentní a auditovatelný, bez změn compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-16 — GA post-freeze re-validation pass (C branch, autonomy cron, 00:33Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260316T003302Z`
+  - `release/bundles/ga-1.0.0-20260316T003310Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-16 — GA post-freeze re-validation pass (C branch, autonomy cron, 00:13Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260316T001306Z`
+  - `release/bundles/ga-1.0.0-20260316T001312Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-16 — GA post-freeze re-validation pass (C branch, autonomy cron, 00:03Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260316T000258Z`
+  - `release/bundles/ga-1.0.0-20260316T000306Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 23:43Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T234302Z`
+  - `release/bundles/ga-1.0.0-20260315T234309Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 23:33Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T233312Z`
+  - `release/bundles/ga-1.0.0-20260315T233322Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 23:13Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T231301Z`
+  - `release/bundles/ga-1.0.0-20260315T231307Z`
+- Repro audit: strict artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 22:43Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T224306Z`
+  - `release/bundles/ga-1.0.0-20260315T224314Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 22:33Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T223306Z`
+  - `release/bundles/ga-1.0.0-20260315T223312Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 22:30Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T222300Z`
+  - `release/bundles/ga-1.0.0-20260315T222308Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + historické bundle deletions/pruning šum); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 22:13Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T221258Z`
+  - `release/bundles/ga-1.0.0-20260315T221304Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: nadále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny + prune/deletion šum v release bundle historii); před dalším push krokem je nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 22:03Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T220255Z`
+  - `release/bundles/ga-1.0.0-20260315T220301Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: stále BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (unrelated změny mimo aktuální pass); před dalším push krokem nutná izolace scope do čistého pracovního stromu.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 21:53Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T215305Z`
+  - `release/bundles/ga-1.0.0-20260315T215311Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Commit/push checkpoint: aktuálně BLOKUJE kvůli rozsáhlému pre-existing dirty stromu v monorepu (masivní unrelated změny mimo tento re-validation pass); před dalším push krokem nutné izolovat/odseparovat změny pro čistý commit scope.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron, 21:43Z)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T214314Z`
+  - `release/bundles/ga-1.0.0-20260315T214319Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+
+## 2026-03-15 — GA post-freeze re-validation pass (C branch, autonomy cron)
+
+- Dodržen C-first scope (bez JS/VM feature změn); proveden pouze stabilizační/release gate běh.
+- Proveden kompletní cyklus re-testu:
+  - `npm test`
+  - `npm run build:c:cross -- examples/hello.mulda`
+  - `npm run check:installers`
+  - `npm run release:ga -- examples/hello.mulda` (2x)
+  - `npm run audit:reproducibility:ga`
+- Výsledek gate: PASS.
+- Nové GA bundly z tohoto běhu:
+  - `release/bundles/ga-1.0.0-20260315T213307Z`
+  - `release/bundles/ga-1.0.0-20260315T213313Z`
+- Repro audit: strict Linux artefakty stabilní; očekávaný drift zůstal omezen na timestampované manifesty (`manifest.json`, `manifest.source.json`) a je veden jako non-blocking.
+- Sentinel gate: maintainability OK — release flow zůstává konzistentní a auditovatelný, bez zásahu do compiler/runtime API.
+- Hydra gate: security posture OK — bez nových privilegií a externích integrací; pouze lokální build/release ověření.
+- Poznámka k pracovním stromům: release bundly jsou historicky verzované v repu a současně se průběžně prořezávají podle retention politiky; aktuální commit/push checkpoint vyžaduje samostatné sjednocení bundle-tracking politiky, aby nevznikaly masivní unrelated deletions.
+
 ## 2026-03-15 — GA stability re-validation pass (C branch, autonomy cron)
 
 - Dodržen C-first scope (bez nových JS/VM feature změn); proveden pouze stabilizační/release gate běh.
@@ -434,3 +719,35 @@
   - Forge: `npm test` PASS, `npm run build:c:cross -- examples/hello.mulda` PASS.
   - Sentinel: maintainability OK — malá, izolovaná stabilizační změna bez dopadu na parser/runtime semantics.
   - Hydra: security posture OK — bez nové attack surface, pouze robustnější práce s cestami při lokálním build orchestration.
+
+## 2026-03-15 — GA release re-validation pass (C branch, no new features)
+
+- Proveden stabilizační/re-test pass čistě na C-first větvi bez rozšiřování JS/VM scope.
+- Ověřené build/release gate:
+  - `npm test` PASS
+  - `npm run build:c:cross -- examples/hello.mulda` PASS
+  - `npm run release:ga -- examples/hello.mulda` PASS (nový bundle: `ga-1.0.0-20260315T225320Z`, starší bundle auto-pruned dle retention policy)
+  - `npm run audit:reproducibility` PASS (pouze očekávaný drift v manifest timestamp hashích)
+- Sentinel gate: maintainability OK — žádná změna implementace, pouze ověření release pipeline a integrity kontraktů.
+- Hydra gate: security posture OK — žádná nová privileges/integrace; release integrita ověřena přes `sha256sum -c release/checksums.sha256`.
+- Commit/push checkpoint: **BLOKUJE** kvůli pre-existing rozsáhlému dirty stromu (unrelated změny/deletions mimo tento validační pass), nelze bezpečně izolovat atomický commit bez předchozího úklidu pracovního stromu.
+
+## 2026-03-15 — Release pruning hardening: skip tracked bundles (C/release stability)
+
+- `scripts/release-ga.sh` a `scripts/release-rc.sh` dostaly guard `is_bundle_tracked()`: prune loop nyní nemaže bundle path, pokud pod ní Git eviduje tracked soubory.
+- Důvod: zabránit tomu, aby retention cleanup při release běhu produkoval masivní `D` změny v pracovním stromu a blokoval bezpečný atomický commit/push.
+- Ověřené gate v cyklu:
+  - Forge: `npm test` PASS, `RELEASE_KEEP_BUNDLES=1 bash scripts/release-ga.sh examples/hello.mulda` PASS, `RELEASE_KEEP_BUNDLES=1 bash scripts/release-rc.sh 1.0.0-rc.2 examples/hello.mulda` PASS.
+  - Sentinel: maintainability OK — změna je malá, izolovaná v release skriptech, bez dopadu na compiler/runtime semantics.
+  - Hydra: security posture OK — žádná nová privilegia ani externí integration; pouze bezpečnější housekeeping policy.
+- Commit/push checkpoint: **BLOKUJE** (repo je stále pre-existing dirty z předchozích běhů; fix je připravený, ale nelze ho v tomto stromu čistě izolovat bez předchozího cleanupu/index refresh).
+
+## 2026-03-16 — Hourly C-branch verification pass (v0.9 cross-compile stability)
+
+- Scope zůstal striktne na C-first větvi (Pascal-first -> C backend), bez nových JS/VM feature zásahů.
+- Proveden validační cyklus (re-test) bez změny feature scope:
+  - `npm test` PASS
+  - `npm run build:c:cross -- examples/hello.mulda` PASS (`hello-linux-x64` + `hello-windows-x64.exe`)
+- Sentinel gate: maintainability OK — tento pass je čistě verifikační, bez rozšiřování architektury nebo DSL surface.
+- Hydra gate: security posture OK — žádná nová attack surface, žádné nové privilege požadavky; pouze lokální build/test orchestrace.
+- Commit/push checkpoint: **BLOKUJE** — globální workspace je stále výrazně pre-existing dirty (tracked deletions + unrelated changes napříč projekty), nelze bezpečně provést atomický commit jen za tento validační krok bez předchozího cleanup/splitu pracovního stromu.
