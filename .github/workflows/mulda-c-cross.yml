@@ -49,7 +49,7 @@ jobs:
         run: sha256sum -c release/checksums.sha256
 
       - name: Upload C artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mulda-c-artifacts
           path: |
