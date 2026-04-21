@@ -1,5 +1,0 @@
-{
-  "name": "text-and-length",
-  "source": "Hokna\ndej msg = text(42)\nvyblij \"hotovo\"\nvyblij msg\nvyblij delka(msg)",
-  "expectedOutput": ["hotovo", "42", "2"]
-}

@@ -18,13 +18,11 @@
     "README.md"
   ],
   "scripts": {
-    "compile": "node compiler/src/transpile.js examples/hello.mulda dist/hello.js",
-    "run": "node runtime/src/run.js dist/hello.js",
-    "run:bytecode": "node runtime/src/run.js dist/hello.bytecode.json",
+    "compile": "node runtime/src/mulda.js compile examples/hello.mulda",
+    "run": "node runtime/src/mulda.js run examples/hello.mulda",
     "demo": "npm run compile && npm run run",
-    "demo:bytecode": "npm run compile && npm run run:bytecode",
     "ide": "node ide-web/server.js",
-    "test": "node tests/transpile.test.js && node tests/fixtures.test.js && node tests/ai-hint.test.js",
+    "test": "node tests/transpile.test.js && node tests/fixtures.test.js && node tests/ai-hint.test.js && node tests/ide-run.test.js",
     "check:installers": "node scripts/check-installers.js",
     "audit:reproducibility": "node scripts/audit-release-reproducibility.js",
     "audit:reproducibility:rc": "node scripts/audit-release-reproducibility.js $(node -p \"require('./package.json').version\") rc",

@@ -1,7 +1,7 @@
 # Mulda v1.0.0-rc.final — Release Notes
 
 ## Co je součástí RC.final
-- Stabilizovaný C-first toolchain pro Mulda (`muldac --target c`, `mulda run-c`).
+- Stabilizovaný C-first toolchain pro Mulda (`muldac`, `mulda run-c`).
 - Cross-build flow pro Linux + Windows:
   - `npm run build:c:cross -- examples/hello.mulda`
 - Release packaging + integrity checks:
@@ -31,4 +31,4 @@ mulda --help
 ## Known limitations (non-blocking)
 - `release/manifest.json` a `release/manifest.source.json` obsahují timestampy (`generatedAt`), takže mezi dvěma běhy se liší.
 - Windows PE binárka může mít timestamp-related checksum drift; je reportováno jako očekávaný non-deterministic drift v reproducibility auditu.
-- JS backend zůstává dev/debug path; produkční směr je C backend.
+- JS backend byl ukončen; projekt pokračuje pouze s C backendem.

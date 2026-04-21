@@ -3,13 +3,13 @@
 ## Aktuální stav
 - Stabilní verze: **v1.0.0 (GA)**
 - Směr: **Pascal-first syntax**, primární runtime/backend: **C**
-- JS backend zůstává zachovaný jako **dev/debug path** (rychlé iterace, trace, IDE experimenty)
+- JS backend byl ukončen; roadmapa je C-backend-only.
 
 ## v0.8 — C backend generator (MVP)
 Cíl: generovat validní C kód z Mulda AST a spustit ho přes gcc.
 
 **Definition of Done (DoD):**
-- `muldac --target c` generuje přeložitelný `.c` výstup pro core subset jazyka.
+- `muldac` generuje přeložitelný `.c` výstup pro core subset jazyka.
 - MVP pokrývá minimálně: `Hokna`, deklarace proměnných, assignment, `vyblij`, `dyz`, `opakuj`, základní funkce/return.
 - Runtime trace parity na základní úrovni (min. `DECLARE`, `ASSIGN`, `PRINT`, `IF`, `RETURN`) dostupná i pro C cestu.
 - E2E testy projdou na Linuxu přes gcc (CI/local) a porovnají výstup s očekáváním.
@@ -33,10 +33,10 @@ Cíl: stabilní kandidát na 1.0 s produkčně použitelným toolchainem.
 **Definition of Done (DoD):**
 - Stabilita: žádné známé blocker bugy v parser/compiler/runtime pro deklarovaný rozsah jazyka.
 - Release artifact: připravený installer nebo distribuční balíček pro Linux/Windows (jasně popsané instalační kroky).
-- Debugger parity: klíčové debug scénáře (run/step/trace/variables) funkčně srovnané mezi C a JS dev/debug cestou.
+- Debugger/trace scénáře jsou cílené na C backend.
 - Upgrade/migration docs z 0.7.x/0.8/0.9 jsou dokončené (`docs/MIGRATION_0.9_to_1.0-rc.md`).
 - RC checklist (testy, docs, release notes) je uzavřený a auditovatelný.
 
 ## Migration note
-- **JS backend se nemaže.** Zůstává oficiálně jako vývojová a debugovací větev.
+- **JS backend byl odstraněn.** Projekt pokračuje pouze s C backendem.
 - Primární produkční směr je nově C backend (Pascal-first stack), JS slouží pro rychlé experimenty, IDE debugging a porovnávání trace chování.

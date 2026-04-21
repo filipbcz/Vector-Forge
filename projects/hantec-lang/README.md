@@ -36,9 +36,8 @@ Experimentální jazyk **Mulda** + web IDE.
 - Stack trace panel parsuje trace události
 - Variables/watch panel zobrazuje snapshot z `DECLARE` + `ASSIGN` event detailu, takže reaguje i na pozdější změny proměnných
 - Jazyk nově podporuje assignment statement `x = expr` vedle deklarací `dej x = expr`
-- Bytecode VM vrací explicitní runtime chybu při assignmentu do neexistující proměnné
 - Zachován compile/run flow přes `dist/` jako v předchozí verzi
-- Nový C backend MVP (`muldac --target c`) + běh přes `mulda run-c`
+- C backend je jediný podporovaný backend (`muldac` / `mulda run`)
 - C backend emituje základní trace eventy (`DECLARE`, `ASSIGN`, `PRINT_EXPR`, `IF`, `REPEAT`, `FUNCTION`, `RETURN`) přes stderr při `MULDA_TRACE=1`
 - Nová jednotná cross-build orchestrace: `npm run build:c:cross -- <soubor.mulda>`
   - z jednoho `.mulda` zdroje vyrobí Linux (`gcc`) i Windows (`mingw-w64`) artefakt
@@ -75,16 +74,14 @@ Fallback chování:
 ```bash
 npm run muldac -- examples/hello.mulda
 npm run muldarun -- examples/hello.mulda
-npm run mulda -- run-bc --trace examples/hello.mulda
 npm run mulda -- run --trace-json examples/hello.mulda
-npm run muldac -- --target c examples/hello.mulda
-npm run muldac -- --target c --platform linux-x64 examples/hello.mulda
-npm run muldac -- --target c --platform windows-x64 examples/hello.mulda
+npm run muldac -- --platform linux-x64 examples/hello.mulda
+npm run muldac -- --platform windows-x64 examples/hello.mulda
 npm run mulda -- run-c examples/hello.mulda
 npm run build:c:cross -- examples/hello.mulda
 ```
 
-Při `--target c --platform ...` se po úspěšném překladu binárky vytvoří i metadata sidecar:
+Při `--platform ...` se po úspěšném překladu binárky vytvoří i metadata sidecar:
 - `dist/<name>-linux-x64.metadata.json`
 - `dist/<name>-windows-x64.exe.metadata.json`
 
@@ -139,5 +136,5 @@ npm run verify:release
 
 ## Security note
 
-VM i JS backend aktuálně vyhodnocují výrazy přes JavaScript evaluaci (`new Function`).
-Mulda zdroj tedy ber jako trusted input a nespouštěj neověřený cizí kód bez sandboxu.
+Mulda je nyní C-backend-only. Pro buildy i spouštění používej důvěryhodné `.mulda` vstupy
+a standardní provozní hygienu (sandbox/CI izolace) pro nativní kompilaci.

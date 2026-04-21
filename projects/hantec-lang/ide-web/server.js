@@ -7,7 +7,6 @@ const { spawnSync } = require('child_process');
 const root = __dirname;
 const projectRoot = path.resolve(root, '..');
 const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
-const runner = path.join(projectRoot, 'runtime/src/run.js');
 
 const AI_APPROVED_KEYWORDS = ['Hokna', 'vyblij', 'dyz', 'trtkej', 'funkcicka', 'joNeboHovno', 'jo', 'hovno', 'aKurva', 'bo', 'nechcu'];
 const AI_DEPRECATED = ['nacpi', 'program', 'rekni', 'spocitej', 'kdyz', 'funkce'];
@@ -140,23 +139,31 @@ function runProgram(source, { traceJson = false } = {}) {
   fs.mkdirSync(tmpDir, { recursive: true });
 
   const inFile = path.join(tmpDir, 'web-input.mulda');
-  const outFile = path.join(tmpDir, 'web-output.js');
+  const cFile = path.join(tmpDir, 'web-output.c');
+  const binFile = path.join(tmpDir, 'web-output-linux-x64');
   fs.writeFileSync(inFile, source, 'utf8');
 
-  const t = spawnSync(process.execPath, [transpiler, inFile, outFile], { encoding: 'utf8' });
+  const t = spawnSync(process.execPath, [transpiler, inFile, cFile], { encoding: 'utf8' });
   if (t.status !== 0) {
     return { ok: false, status: 400, error: t.stderr || t.stdout || 'Transpile failed' };
   }
 
-  const args = [runner];
-  if (traceJson) {
-    args.push('--trace-json');
-  }
-  args.push(outFile);
-
-  const r = spawnSync(process.execPath, args, {
+  const cc = spawnSync('gcc', [cFile, '-std=c11', '-O2', '-o', binFile], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe']
+  });
+  if (cc.status !== 0) {
+    return { ok: false, status: 400, error: cc.stderr || cc.stdout || 'C compile failed' };
+  }
+
+  const r = spawnSync(binFile, [], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      MULDA_TRACE: traceJson ? '1' : '0',
+      MULDA_TRACE_FORMAT: traceJson ? 'json' : 'text'
+    }
   });
 
   const output = String(r.stdout || '').trim();
@@ -169,7 +176,14 @@ function runProgram(source, { traceJson = false } = {}) {
     if (!trimmed) continue;
     try {
       const parsed = JSON.parse(trimmed);
-      if (parsed && parsed.trace) {
+      const isTraceEvent =
+        parsed &&
+        typeof parsed === 'object' &&
+        (
+          parsed.trace === true ||
+          (typeof parsed.op === 'string' && (parsed.backend === 'c' || parsed.backend === 'js'))
+        );
+      if (isTraceEvent) {
         trace.push(parsed);
       } else {
         errors.push(trimmed);
