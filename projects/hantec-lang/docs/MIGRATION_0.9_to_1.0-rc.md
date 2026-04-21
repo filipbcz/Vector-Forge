@@ -50,6 +50,6 @@ Toto je explicitně akceptované v RC checklistu s mitigací přes JSON trace co
 
 ## 5) Doporučení pro CI/CD
 
-- Drž C větev jako release gate (JS/VM používej jen pro dev/debug parity a kompatibilitu).
+- Drž C větev jako jediný release gate.
 - Archivuj i metadata sidecary a release manifest (audit artefaktů + checksumy).
 - Fail-fast při `[TOOLCHAIN_MISSING]` a vypiš instalační hinty do CI logu.

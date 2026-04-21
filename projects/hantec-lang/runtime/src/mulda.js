@@ -6,12 +6,11 @@ const { spawnSync } = require('child_process');
 
 const projectRoot = path.resolve(__dirname, '../..');
 const transpiler = path.join(projectRoot, 'compiler/src/transpile.js');
-const runner = path.join(projectRoot, 'runtime/src/run.js');
 const packageJson = require(path.join(projectRoot, 'package.json'));
 
 function printUsage() {
-  console.error('Usage: mulda <compile|run|run-bc|run-c> [--target js|c] [--platform linux-x64|windows-x64] [--trace|--debug|--trace-json] <file.mulda>');
-  console.error('Aliases: muldac [--target js|c] [--platform linux-x64|windows-x64] <file.mulda> ; muldarun [--trace|--debug|--trace-json] <file.mulda> [--bc|--c]');
+  console.error('Usage: mulda <compile|run|run-c> [--platform linux-x64|windows-x64] [--trace|--debug|--trace-json] <file.mulda>');
+  console.error('Aliases: muldac [--platform linux-x64|windows-x64] <file.mulda> ; muldarun [--trace|--debug|--trace-json] <file.mulda>');
 }
 
 function compileFile(inputFile, options = {}) {
@@ -21,23 +20,16 @@ function compileFile(inputFile, options = {}) {
     return 1;
   }
 
-  const target = options.target || 'js';
-  if (!['js', 'c'].includes(target)) {
-    console.error(`Unsupported compile target: ${target}`);
-    return 1;
-  }
-
   const distDir = path.join(projectRoot, 'dist');
   fs.mkdirSync(distDir, { recursive: true });
   const baseName = path.basename(resolved, '.mulda');
-  const ext = target === 'c' ? '.c' : '.js';
-  const outputFile = path.join(distDir, `${baseName}${ext}`);
+  const outputFile = path.join(distDir, `${baseName}.c`);
 
   const t = spawnSync(process.execPath, [transpiler, resolved, outputFile], { stdio: 'inherit' });
   const status = t.status || 0;
   if (status !== 0) return status;
 
-  if (target === 'c' && options.platform) {
+  if (options.platform) {
     const toolchain = resolveCToolchain(options.platform);
     if (!toolchain) {
       console.error(`Unsupported platform: ${options.platform}`);
@@ -73,7 +65,6 @@ function resolveCToolchain(platform = 'linux-x64') {
 function getCCompileArgs(toolchain, entryCFile, outputFile) {
   const args = [entryCFile, '-std=c11', '-O2'];
 
-  // Keep Windows PE headers deterministic when cross-compiling via MinGW.
   if (toolchain.targetLabel === 'windows-x64') {
     args.push('-Wl,--no-insert-timestamp');
   }
@@ -155,37 +146,20 @@ function compileAndRunC(entryCFile, options = {}) {
   return run.status || 0;
 }
 
-function runFile(inputFile, mode = 'js', options = {}) {
-  const compileTarget = mode === 'c' ? 'c' : 'js';
-  const status = compileFile(inputFile, { target: compileTarget });
+function runFile(inputFile, options = {}) {
+  const status = compileFile(inputFile);
   if (status !== 0) return status;
 
   const resolved = path.resolve(inputFile);
   const baseName = path.basename(resolved, '.mulda');
-  const jsFile = path.join(projectRoot, 'dist', `${baseName}.js`);
   const cFile = path.join(projectRoot, 'dist', `${baseName}.c`);
 
-  if (mode === 'c') {
-    return compileAndRunC(cFile, options);
-  }
-
-  const entryFile = mode === 'bytecode'
-    ? jsFile.replace(/\.js$/, '.bytecode.json')
-    : jsFile;
-
-  const runnerArgs = [runner];
-  if (options.trace) {
-    runnerArgs.push(options.traceFormat === 'json' ? '--trace-json' : '--trace');
-  }
-  runnerArgs.push(entryFile);
-
-  const r = spawnSync(process.execPath, runnerArgs, { stdio: 'inherit' });
-  return r.status || 0;
+  return compileAndRunC(cFile, options);
 }
 
 function parseCommandArgs(argv) {
   const args = [...argv];
-  const options = { trace: false, traceFormat: 'text', bytecode: false, cBackend: false, target: 'js', platform: null };
+  const options = { trace: false, traceFormat: 'text', platform: null };
 
   while (args[0] && args[0].startsWith('--')) {
     const flag = args.shift();
@@ -198,21 +172,6 @@ function parseCommandArgs(argv) {
       options.traceFormat = 'json';
       continue;
     }
-    if (flag === '--bc' || flag === '--bytecode') {
-      options.bytecode = true;
-      continue;
-    }
-    if (flag === '--c') {
-      options.cBackend = true;
-      continue;
-    }
-    if (flag === '--target') {
-      const value = args.shift();
-      if (!value) throw new Error('--target requires value: js or c');
-      if (value !== 'js' && value !== 'c') throw new Error(`Unsupported target: ${value}`);
-      options.target = value;
-      continue;
-    }
     if (flag === '--platform') {
       const value = args.shift();
       if (!value) throw new Error('--platform requires value: linux-x64 or windows-x64');
@@ -221,6 +180,9 @@ function parseCommandArgs(argv) {
       }
       options.platform = value;
       continue;
+    }
+    if (flag === '--target' || flag === '--bc' || flag === '--bytecode' || flag === '--c') {
+      throw new Error(`${flag} is no longer supported. Mulda runs only with C backend.`);
     }
     throw new Error(`Unknown flag: ${flag}`);
   }
@@ -239,7 +201,7 @@ function main() {
         printUsage();
         process.exit(1);
       }
-      process.exit(compileFile(parsed.inputFile, { target: parsed.options.target, platform: parsed.options.platform }));
+      process.exit(compileFile(parsed.inputFile, { platform: parsed.options.platform }));
     }
 
     if (invokedAs === 'muldarun') {
@@ -248,8 +210,7 @@ function main() {
         printUsage();
         process.exit(1);
       }
-      const mode = parsed.options.cBackend ? 'c' : (parsed.options.bytecode ? 'bytecode' : 'js');
-      process.exit(runFile(parsed.inputFile, mode, parsed.options));
+      process.exit(runFile(parsed.inputFile, parsed.options));
     }
 
     if (commandOrFile === 'compile') {
@@ -258,34 +219,16 @@ function main() {
         printUsage();
         process.exit(1);
       }
-      process.exit(compileFile(parsed.inputFile, { target: parsed.options.target, platform: parsed.options.platform }));
+      process.exit(compileFile(parsed.inputFile, { platform: parsed.options.platform }));
     }
 
-    if (commandOrFile === 'run') {
+    if (commandOrFile === 'run' || commandOrFile === 'run-c') {
       const parsed = parseCommandArgs(rest);
       if (!parsed.inputFile) {
         printUsage();
         process.exit(1);
       }
-      process.exit(runFile(parsed.inputFile, 'js', parsed.options));
-    }
-
-    if (commandOrFile === 'run-bc') {
-      const parsed = parseCommandArgs(rest);
-      if (!parsed.inputFile) {
-        printUsage();
-        process.exit(1);
-      }
-      process.exit(runFile(parsed.inputFile, 'bytecode', parsed.options));
-    }
-
-    if (commandOrFile === 'run-c') {
-      const parsed = parseCommandArgs(rest);
-      if (!parsed.inputFile) {
-        printUsage();
-        process.exit(1);
-      }
-      process.exit(runFile(parsed.inputFile, 'c', parsed.options));
+      process.exit(runFile(parsed.inputFile, parsed.options));
     }
   } catch (err) {
     console.error(err.message || String(err));

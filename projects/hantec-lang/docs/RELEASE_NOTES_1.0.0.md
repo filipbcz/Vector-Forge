@@ -25,5 +25,5 @@ Mulda v1.0.0 je GA release cut z větve C-first. Tento release je **freeze relea
 - Manifest timestampy jsou záměrně časově proměnlivé (`generatedAt`).
 
 ## Kompatibilita
-- JS backend zůstává jako dev/debug path.
+- JS backend byl ukončen; podporovaná je pouze C větev.
 - Primární produkční backend je C.

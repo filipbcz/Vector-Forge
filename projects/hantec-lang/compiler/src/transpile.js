@@ -605,8 +605,8 @@ function generateC(ast) {
         emit(node.body, indent + 1, [...scopeChain, new Map()]);
         out.push(`${pad}}`);
       } else if (node.type === 'function') {
-        out.push(`${pad}__mulda_trace("FUNCTION", ${node.line}, "${cEscape(`name=${node.name}`)}");`);
         out.push(`${pad}static double ${node.name}(${node.params.map((p) => `double ${p}`).join(', ') || 'void'}) {`);
+        out.push(`${pad}  __mulda_trace("FUNCTION", ${node.line}, "${cEscape(`name=${node.name}`)}");`);
         const fnScope = new Map(node.params.map((p) => [p, 'double']));
         emit(node.body, indent + 1, [...scopeChain, fnScope]);
         out.push(`${pad}  return 0;`);
@@ -679,23 +679,21 @@ function emitBytecode(ast) {
 
 function transpileMulda(source) {
   const ast = parseProgram(source);
-  return generateJs(ast);
+  return generateC(ast);
 }
 
 function compileMulda(source) {
   const ast = parseProgram(source);
   return {
     ast,
-    js: generateJs(ast),
-    c: generateC(ast),
-    bytecode: emitBytecode(ast)
+    c: generateC(ast)
   };
 }
 
 function main() {
   const [, , inputFile, outputFile] = process.argv;
   if (!inputFile || !outputFile) {
-    console.error('Usage: node compiler/src/transpile.js <input.mulda> <output.js|output.c>');
+    console.error('Usage: node compiler/src/transpile.js <input.mulda> <output.c>');
     process.exit(1);
   }
 
@@ -704,22 +702,15 @@ function main() {
 
   try {
     const source = fs.readFileSync(inputPath, 'utf8');
-    const { js, c, bytecode } = compileMulda(source);
+    const { c } = compileMulda(source);
 
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    if (outputPath.endsWith('.c')) {
-      fs.writeFileSync(outputPath, c, 'utf8');
-      console.log(`Transpiled ${inputFile} -> ${outputFile}`);
-      return;
+    if (!outputPath.endsWith('.c')) {
+      throw new Error(`Unsupported output target: ${outputFile}. Only .c output is supported.`);
     }
 
-    fs.writeFileSync(outputPath, js, 'utf8');
-
-    const bytecodePath = outputPath.replace(/\.js$/, '.bytecode.json');
-    fs.writeFileSync(bytecodePath, JSON.stringify(bytecode, null, 2));
-
+    fs.writeFileSync(outputPath, c, 'utf8');
     console.log(`Transpiled ${inputFile} -> ${outputFile}`);
-    console.log(`Bytecode -> ${path.relative(process.cwd(), bytecodePath)}`);
   } catch (err) {
     console.error(err.message || String(err));
     process.exit(1);
@@ -733,11 +724,9 @@ if (require.main === module) {
 module.exports = {
   syntaxError,
   parseProgram,
-  generateJs,
   generateC,
   transpileMulda,
   compileMulda,
   transpileHantec: transpileMulda,
-  compileHantec: compileMulda,
-  emitBytecode
+  compileHantec: compileMulda
 };
